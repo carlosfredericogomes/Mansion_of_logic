@@ -1,0 +1,1 @@
+# D1..D4 e transições da FSM (sem pygame)
