@@ -1,1 +1,1 @@
-# Mansion_of_logic
+# MANSION OF LOGIC

@@ -1,0 +1,1 @@
+# Arquivo que avisa ao Python: "esta pasta é um pacote, você pode importar o que está dentro dela".
