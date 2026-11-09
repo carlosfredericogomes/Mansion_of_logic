@@ -1,0 +1,97 @@
+[
+  {
+    "id": 5,
+    "enunciado": "Traduza: \"Ou Paulo é médico ou Paulo é dentista, mas não ambos.\"",
+    "opcoes": [
+      "p ∨ q",
+      "(p ∨ q) ∧ ¬(p ∧ q)",
+      "p ∧ q",
+      "p → ¬q ∧ q"
+    ],
+    "correta": 1,
+    "explicacao": "É o \"ou exclusivo\": p ou q, e não os dois ao mesmo tempo."
+  },
+  {
+    "id": 28,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de (p ∨ q) → (p ∧ q)? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V V V F",
+      "V F F V",
+      "V F V V",
+      "F V V F"
+    ],
+    "correta": 1,
+    "explicacao": "Em VV dá V→V = V; em VF e FV dá V→F = F; em FF dá F→F = V."
+  },
+  {
+    "id": 19,
+    "enunciado": "Traduza: \"Se o motor funciona, o carro anda; caso contrário, ele para.\" (p = o motor funciona, q = o carro anda, r = o carro para)",
+    "opcoes": [
+      "(p → q) ∧ (¬p → r)",
+      "(p → q) ∨ (¬p → r)",
+      "p → (q ∧ r)",
+      "(p ∧ q) → ¬r"
+    ],
+    "correta": 0,
+    "explicacao": "Há duas condicionais juntas: p → q (motor funciona) e ¬p → r (caso contrário)."
+  },
+  {
+    "id": 47,
+    "enunciado": "Para provar que p ↔ q é equivalente a (p → q) ∧ (q → p), montamos a tabela-verdade das duas. Qual coluna de resultado aparece nas duas? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F V V",
+      "F V V F",
+      "V F F V",
+      "V V V V"
+    ],
+    "correta": 2,
+    "explicacao": "As duas fórmulas dão V F F V, então são equivalentes."
+  },
+  {
+    "id": 63,
+    "enunciado": "Classifique (p → q) ∨ (q → p).",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 0,
+    "explicacao": "Se p → q é falsa, então p = V e q = F, e aí q → p é verdadeira. O resultado é sempre V."
+  },
+  {
+    "id": 65,
+    "enunciado": "(p ∨ q) → (p ∧ q) é uma contingência?",
+    "opcoes": [
+      "Sim, pois o resultado tem V e F",
+      "Não, pois é sempre V",
+      "Não, pois é sempre F",
+      "Não, pois não depende de p e q"
+    ],
+    "correta": 0,
+    "explicacao": "A coluna é V F F V: tem valores V e F, logo é contingência."
+  },
+  {
+    "id": 83,
+    "enunciado": "De p → q e q → r, qual é a conclusão que se deduz?",
+    "opcoes": [
+      "r → p",
+      "p → r",
+      "q → p",
+      "p ∧ r"
+    ],
+    "correta": 1,
+    "explicacao": "É o silogismo hipotético: de p → q e q → r, conclui-se p → r."
+  },
+  {
+    "id": 17,
+    "enunciado": "Traduza: \"Nenhum aluno faltou à aula.\" (A(x): x é aluno; F(x): x faltou)",
+    "opcoes": [
+      "∀x (A(x) → ¬F(x))",
+      "∃x (A(x) ∧ ¬F(x))",
+      "∀x (A(x) → F(x))",
+      "∀x (A(x) ∧ ¬F(x))"
+    ],
+    "correta": 0,
+    "explicacao": "Todo aluno não faltou. Equivale a ¬∃x (A(x) ∧ F(x)): não existe aluno que faltou."
+  }
+]

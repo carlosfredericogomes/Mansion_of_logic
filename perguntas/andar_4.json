@@ -1,0 +1,120 @@
+[
+  {
+    "id": 7,
+    "enunciado": "Traduza: \"Se hoje é sábado e está sol, irei à praia.\"",
+    "opcoes": [
+      "p ∧ (q → r)",
+      "(p ∧ q) → r",
+      "(p ∨ q) → r",
+      "p → (q ∧ r)"
+    ],
+    "correta": 1,
+    "explicacao": "Com p = é sábado, q = está sol e r = irei à praia, o antecedente é p ∧ q."
+  },
+  {
+    "id": 13,
+    "enunciado": "Traduza: \"Se Maria não estuda, então ela não passa.\" (p = Maria estuda, q = Maria passa)",
+    "opcoes": [
+      "¬p → ¬q",
+      "¬(p → q)",
+      "p → q",
+      "¬q → ¬p ∧ p"
+    ],
+    "correta": 0,
+    "explicacao": "\"Não estuda\" é ¬p e \"não passa\" é ¬q, logo ¬p → ¬q."
+  },
+  {
+    "id": 27,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de (p → q) ∨ ¬p? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V V V F",
+      "V F V V",
+      "F V V V",
+      "V F F V"
+    ],
+    "correta": 1,
+    "explicacao": "Só é falsa em VF, onde p → q é F e ¬p é F."
+  },
+  {
+    "id": 41,
+    "enunciado": "Para mostrar que p → q ≡ ¬p ∨ q, montamos a tabela das duas. Qual coluna de resultado aparece nas duas? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F V",
+      "V V V F",
+      "F V V V",
+      "V F V V"
+    ],
+    "correta": 3,
+    "explicacao": "As duas dão V F V V, então são logicamente equivalentes."
+  },
+  {
+    "id": 82,
+    "enunciado": "De p → q e ¬q, qual é a conclusão que se deduz?",
+    "opcoes": [
+      "¬p",
+      "p",
+      "q",
+      "¬p → q"
+    ],
+    "correta": 0,
+    "explicacao": "É o modus tollens: se p → q é verdadeira e q é falsa, então p é falsa."
+  },
+  {
+    "id": 98,
+    "enunciado": "Deduzir ¬p ∨ q a partir de p → q usa qual equivalência?",
+    "opcoes": [
+      "Lei de De Morgan",
+      "Absorção",
+      "Implicação material (p → q ≡ ¬p ∨ q)",
+      "Dupla negação"
+    ],
+    "correta": 2,
+    "explicacao": "A implicação material diz que p → q ≡ ¬p ∨ q."
+  },
+  {
+    "id": 42,
+    "enunciado": "Para demonstrar a Lei de De Morgan ¬(p ∧ q) ≡ ¬p ∨ ¬q, montamos a tabela das duas. Qual coluna de resultado aparece nas duas? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "F V V V",
+      "V F F F",
+      "F F F V",
+      "V V V F"
+    ],
+    "correta": 0,
+    "explicacao": "As duas dão F V V V, então são equivalentes."
+  },
+  {
+    "id": 37,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de (p ∨ q) ↔ (¬p → q)? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V V V V",
+      "V F F V",
+      "F F F F",
+      "V V V F"
+    ],
+    "correta": 0,
+    "explicacao": "¬p → q equivale a p ∨ q, então as duas partes sempre têm o mesmo valor."
+  },
+  {
+    "id": 64,
+    "enunciado": "Classifique (p ∧ q) → (p ∨ q).",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 0,
+    "explicacao": "Se p ∧ q é verdadeira, p ∨ q também é. O resultado é sempre V."
+  },
+  {
+    "id": 68,
+    "enunciado": "Classifique (p → q) ∧ (p → ¬q).",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 2,
+    "explicacao": "A coluna é F F V V: tem V e F, logo é contingência (equivale a ¬p)."
+  }
+]

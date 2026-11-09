@@ -1,0 +1,97 @@
+[
+  {
+    "id": 81,
+    "enunciado": "De p → q e p, qual é a conclusão que se deduz?",
+    "opcoes": [
+      "¬q",
+      "p ∧ ¬q",
+      "q",
+      "¬p"
+    ],
+    "correta": 2,
+    "explicacao": "É o modus ponens: de p → q e p, conclui-se q."
+  },
+  {
+    "id": 4,
+    "enunciado": "Traduza: \"Não é verdade que Ana viajou.\"",
+    "opcoes": [
+      "p → ¬p",
+      "¬p",
+      "p",
+      "¬p ∧ p"
+    ],
+    "correta": 1,
+    "explicacao": "Com p = Ana viajou, a negação da frase é ¬p."
+  },
+  {
+    "id": 25,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de p ↔ q? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F V",
+      "V F V V",
+      "F V V F",
+      "V V V F"
+    ],
+    "correta": 0,
+    "explicacao": "A bicondicional é verdadeira quando p e q têm o mesmo valor."
+  },
+  {
+    "id": 51,
+    "enunciado": "Simplifique p ∨ (p ∧ q).",
+    "opcoes": [
+      "q",
+      "p ∧ q",
+      "p",
+      "p ∨ q"
+    ],
+    "correta": 2,
+    "explicacao": "Pela lei da absorção, p ∨ (p ∧ q) ≡ p."
+  },
+  {
+    "id": 62,
+    "enunciado": "Classifique p ∧ ¬p.",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 1,
+    "explicacao": "p e ¬p nunca são verdadeiras ao mesmo tempo, então o resultado é sempre F: contradição."
+  },
+  {
+    "id": 3,
+    "enunciado": "Traduza: \"Se Pedro estuda ou trabalha, então ele está cansado.\"",
+    "opcoes": [
+      "p ∨ (q → r)",
+      "(p ∨ q) → r",
+      "(p ∧ q) → r",
+      "p ∨ q ∨ r"
+    ],
+    "correta": 1,
+    "explicacao": "Com p = estuda, q = trabalha e r = está cansado, o antecedente é (p ∨ q), logo (p ∨ q) → r."
+  },
+  {
+    "id": 26,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de (p ∨ q) ∧ ¬r? (linhas: VVV, VVF, VFV, VFF, FVV, FVF, FFV, FFF)",
+    "opcoes": [
+      "F V F V F V F F",
+      "V F V F V F V V",
+      "F V F V F V F V",
+      "F F F V F V F F"
+    ],
+    "correta": 0,
+    "explicacao": "A fórmula só é verdadeira quando (p ∨ q) é V e r é F."
+  },
+  {
+    "id": 89,
+    "enunciado": "De p ∨ q e ¬p, qual é a conclusão que se deduz?",
+    "opcoes": [
+      "p",
+      "¬q",
+      "q",
+      "p ∧ q"
+    ],
+    "correta": 2,
+    "explicacao": "É o silogismo disjuntivo: se p ∨ q é verdadeira e p é falsa, então q é verdadeira."
+  }
+]

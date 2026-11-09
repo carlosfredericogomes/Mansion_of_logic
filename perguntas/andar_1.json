@@ -1,0 +1,73 @@
+[
+  {
+    "id": 1,
+    "enunciado": "Traduza para a linguagem simbólica: \"Se chover, então levo guarda-chuva.\"",
+    "opcoes": [
+      "p → q",
+      "p ∧ q",
+      "q → p",
+      "p ↔ q"
+    ],
+    "correta": 0,
+    "explicacao": "Com p = chover e q = levo guarda-chuva, \"se p, então q\" é p → q."
+  },
+  {
+    "id": 2,
+    "enunciado": "Traduza: \"Maria é engenheira e João é advogado.\"",
+    "opcoes": [
+      "p ∨ q",
+      "p ∧ q",
+      "p → q",
+      "¬p ∧ q"
+    ],
+    "correta": 1,
+    "explicacao": "Com p = Maria é engenheira e q = João é advogado, o \"e\" é a conjunção p ∧ q."
+  },
+  {
+    "id": 21,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de p ∧ q? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F F",
+      "V V V F",
+      "V F F V",
+      "F F F V"
+    ],
+    "correta": 0,
+    "explicacao": "A conjunção só é verdadeira quando p e q são ambas verdadeiras."
+  },
+  {
+    "id": 24,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de p → q? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F V",
+      "V F V V",
+      "V V F V",
+      "F V V V"
+    ],
+    "correta": 1,
+    "explicacao": "A implicação só é falsa quando p é verdadeira e q é falsa."
+  },
+  {
+    "id": 44,
+    "enunciado": "Simplifique ¬(¬p).",
+    "opcoes": [
+      "¬p",
+      "p",
+      "V",
+      "F"
+    ],
+    "correta": 1,
+    "explicacao": "Pela lei da dupla negação, ¬(¬p) ≡ p."
+  },
+  {
+    "id": 61,
+    "enunciado": "Classifique p ∨ ¬p.",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 0,
+    "explicacao": "Ou p é verdadeira ou ¬p é, então o resultado é sempre V: tautologia."
+  }
+]

@@ -8,6 +8,8 @@ WINDOW_TITLE = "Mansion of Logic"
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 IMAGENS_DIR = BASE_DIR / "assets" / "imagens"
+PERGUNTAS_DIR = BASE_DIR / "perguntas"
+
 
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
