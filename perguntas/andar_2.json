@@ -81,17 +81,5 @@
     ],
     "correta": 0,
     "explicacao": "A fórmula só é verdadeira quando (p ∨ q) é V e r é F."
-  },
-  {
-    "id": 89,
-    "enunciado": "De p ∨ q e ¬p, qual é a conclusão que se deduz?",
-    "opcoes": [
-      "p",
-      "¬q",
-      "q",
-      "p ∧ q"
-    ],
-    "correta": 2,
-    "explicacao": "É o silogismo disjuntivo: se p ∨ q é verdadeira e p é falsa, então q é verdadeira."
   }
 ]
