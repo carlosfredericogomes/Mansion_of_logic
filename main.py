@@ -20,8 +20,8 @@ BOTAO.center = (1090, 640)
 
 def desenhar_menu(tela, fundo, jogador, fonte, mouse_pos):
     tela.blit(fundo, (0, 0))
-    tela.blit(jogador, jogador.get_rect(midbottom=(640, 710)))
-
+    tela.blit(jogador, jogador.get_rect(midbottom=(430, 700)))
+    
     cor = COR_BOTAO_HOVER if BOTAO.collidepoint(mouse_pos) else COR_BOTAO
     pygame.draw.rect(tela, cor, BOTAO, border_radius=10)
     pygame.draw.rect(tela, COR_BORDA, BOTAO, width=4, border_radius=10)
@@ -37,8 +37,7 @@ def menu_inicial():
     relogio = pygame.time.Clock()
     fonte = pygame.font.Font(None, 48)
 
-    fundo = carregar_imagem("fundo_entrada_mansao.png")
-    # Exterminador reduzido (256x320 -> 154x192) para não cobrir a porta da mansão.
+    fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)    # Exterminador reduzido (256x320 -> 154x192) para não cobrir a porta da mansão.
     jogador = carregar_imagem(JOGADOR_SPRITE, (154, 192))
 
     estado = MENU
