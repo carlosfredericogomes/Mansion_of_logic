@@ -4,9 +4,12 @@ import pygame
 from config.config import (
     COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
 )
-from src.recursos import JOGADOR_SPRITE, carregar_imagem
+
 from src.regras import Duelo
 from src.telas import TelaDuelo, TelaExploracao
+from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
+
+jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), 200)
 
 MENU = "MENU"
 EXPLORACAO = "EXPLORACAO"
@@ -21,7 +24,7 @@ BOTAO.center = (1090, 640)
 def desenhar_menu(tela, fundo, jogador, fonte, mouse_pos):
     tela.blit(fundo, (0, 0))
     tela.blit(jogador, jogador.get_rect(midbottom=(430, 700)))
-    
+
     cor = COR_BOTAO_HOVER if BOTAO.collidepoint(mouse_pos) else COR_BOTAO
     pygame.draw.rect(tela, cor, BOTAO, border_radius=10)
     pygame.draw.rect(tela, COR_BORDA, BOTAO, width=4, border_radius=10)

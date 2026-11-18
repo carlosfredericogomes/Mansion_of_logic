@@ -56,3 +56,8 @@ def carregar_fonte(tamanho, negrito=False):
         arquivo = FONTE_NEGRITO if negrito else FONTE_PADRAO
         _cache_fontes[chave] = pygame.font.Font(FONTES_DIR / arquivo, tamanho)
     return _cache_fontes[chave]
+
+def redimensionar_por_altura(img, altura):
+    """Redimensiona mantendo a proporção da imagem."""
+    largura = round(img.get_width() * altura / img.get_height())
+    return pygame.transform.smoothscale(img, (largura, altura))
