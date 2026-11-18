@@ -1,5 +1,6 @@
 import json
 import warnings
+import random
 
 from config.config import PERGUNTAS_DIR
 from src.chefes import CHEFES
@@ -61,3 +62,41 @@ def carregar_perguntas(andar):
             stacklevel=2,
         )
     return perguntas
+
+class semperguntasError(Exception):
+    """"duelo pediu mais perguntas do que existem no andar"""
+
+def problemas_das_perguntas(pergunta):
+    problemas = []
+    faltando = [c for c in CAMPOS_OBRIGATORIOS if c not in pergunta]
+    if faltando:
+        return[f"faltam os campos {faltando}"]
+    opcoes = pergunta["opcoes"]
+    if len(opcoes) < 2:
+        problemas.append("tem opçoes repetidas")
+    if not(isinstance(pergunta["correta"], int) and 0 <= pergunta["correta"] < len(opcoes)):
+        problemas.append("indice 'corrteta' fora das opçoes")
+    if not str (pergunta["enunciado"]).strip():
+        problemas.append("enunciado vazio")
+    return problemas
+
+
+class baralho_perguntas:
+    def __init__(self, perguntas, rng=None):
+        ids =[p["id"] for p in perguntas] 
+        if len(set(ids)) != len(ids):
+            raise ValueError("tem perguntas com id repetido no mesmo andar")
+        self._pilha = list(perguntas)
+        (rng or random).shuffle(self._pilha)
+        self.usadas =[]
+
+    def proxima(self):
+        if not self._pilha:
+            raise semperguntasError("acabaram as peguntas desse andar")
+        pergunta = self._pilha.pop()
+        self.usadas.append(pergunta["id"])
+        return pergunta
+
+    @property
+    def restantes(self):
+        return len(self._pilha) 

@@ -61,3 +61,16 @@ CHEFES_INFOS = {
         "fala_entrada": "Bem-vindo ao topo da mansão. Daqui, poucos saem...",
         "fala_derrota": "Drácula vira pó ao amanhecer. A mansão está livre!",}
 }
+
+TOTAL_ANDARES = len(CHEFES)
+
+def obter_chefe(andar):
+    if andar not in CHEFES:
+        raise ValueError(f"Andar inválido: {andar}. Use de 1 a {TOTAL_ANDARES}.")
+    return dict(CHEFES[andar])
+
+def perguntas_necessarias(andar, vidas_jogador=JOGADOR_VIDAS):
+    chefe = obter_chefe(andar)
+    acertos_max = -(-chefe["vidas"] // CUSTO_ACERTO)  
+    erros_max = -(-vidas_jogador // CUSTO_ERRO)
+    return acertos_max + erros_max - 1
