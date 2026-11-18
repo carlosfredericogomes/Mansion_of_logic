@@ -10,7 +10,7 @@ from config.config import (
 )
 from src.recursos import (
     CHEFES_SPRITE, FUNDOS_ANDAR, FUNDOS_EXPLORACAO, JOGADOR_COSTAS_SPRITE, JOGADOR_SPRITE,
-    carregar_fonte, carregar_imagem,
+    carregar_fonte, carregar_imagem, redimensionar_por_altura
 )
 from src.chefes import CHEFES
 
@@ -184,7 +184,7 @@ class TelaDuelo:
         andar = duelo.andar
         self.nome_chefe = CHEFES[andar]["nome"]
         self.fundo = carregar_imagem(FUNDOS_ANDAR.get(andar), (WIDTH, HEIGHT))
-        self.jogador = carregar_imagem(JOGADOR_SPRITE, TAMANHO_JOGADOR)
+        self.jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), 320)
         self.chefe = carregar_imagem(CHEFES_SPRITE.get(andar), TAMANHO_CHEFE)
 
         self.fonte_enunciado = carregar_fonte(24)
