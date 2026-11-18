@@ -9,7 +9,6 @@ from src.regras import Duelo
 from src.telas import TelaDuelo, TelaExploracao
 from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
 
-jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), 200)
 
 MENU = "MENU"
 EXPLORACAO = "EXPLORACAO"
@@ -41,7 +40,7 @@ def menu_inicial():
     fonte = pygame.font.Font(None, 48)
 
     fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)    # Exterminador reduzido (256x320 -> 154x192) para não cobrir a porta da mansão.
-    jogador = carregar_imagem(JOGADOR_SPRITE, (154, 192))
+    jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), 200)
 
     estado = MENU
     tela_exploracao = None
