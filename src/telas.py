@@ -6,7 +6,7 @@ import pygame
 
 from config.config import (
     COR_ACERTO, COR_BORDA, COR_CORACAO, COR_ERRO, COR_PAINEL, COR_SELECIONADA, COR_TEXTO,
-    HEIGHT, WIDTH,
+    HEIGHT, WIDTH, COR_BOTAO, COR_BOTAO_HOVER, WHITE
 )
 from src.recursos import (
     CHEFES_SPRITE, FUNDOS_ANDAR, FUNDOS_EXPLORACAO, JOGADOR_COSTAS_SPRITE, JOGADOR_SPRITE,
@@ -313,3 +313,58 @@ class TelaDuelo:
         if self.tempo_feedback >= ESPERA_MINIMA:
             _texto(superficie, rodape, self.fonte_pequena, COR_TEXTO,
                    (PAINEL.centerx, PAINEL.bottom - 22), centro=True)
+
+class TelaGameOver:
+    def __init__(self):
+        self.concluida = False
+        self.acao = None           
+        self.tempo = 0.0
+        self.fonte_titulo = pygame.font.Font(None, 140)
+        self.fonte = pygame.font.Font(None, 48)
+        self.botoes = {
+            "tentar_novamente": pygame.Rect(0, 0, 380, 70),
+            "menu": pygame.Rect(0, 0, 380, 70),
+        }
+        self.botoes["tentar_novamente"].center = (640, 420)
+        self.botoes["menu"].center = (640, 510)
+
+    def tratar_evento(self, evento):
+        if self.tempo < 0.8:        
+            return
+        if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+            for acao, rect in self.botoes.items():
+                if rect.collidepoint(evento.pos):
+                    self._escolher(acao)
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key in (pygame.K_RETURN, pygame.K_r):
+                self._escolher("tentar_novamente")
+            elif evento.key == pygame.K_ESCAPE:
+                self._escolher("menu")
+
+    def _escolher(self, acao):
+        self.acao = acao
+        self.concluida = True
+
+    def atualizar(self, dt):
+        self.tempo += dt
+
+    def desenhar(self, tela):
+        alfa = min(255, int(self.tempo / 1.0 * 255))   
+        sombra = pygame.Surface(tela.get_size())
+        sombra.fill((12, 0, 4))
+        sombra.set_alpha(alfa)
+        tela.blit(sombra, (0, 0))
+
+        titulo = self.fonte_titulo.render("GAME OVER", True, (200, 30, 40))
+        titulo.set_alpha(alfa)
+        tela.blit(titulo, titulo.get_rect(center=(640, 250)))
+
+        mouse = pygame.mouse.get_pos()
+        nomes = {"tentar_novamente": "TENTAR NOVAMENTE", "menu": "MENU"}
+        for acao, rect in self.botoes.items():
+            cor = COR_BOTAO_HOVER if rect.collidepoint(mouse) else COR_BOTAO
+            pygame.draw.rect(tela, cor, rect, border_radius=10)
+            pygame.draw.rect(tela, COR_BORDA, rect, width=4, border_radius=10)
+            texto = self.fonte.render(nomes[acao], True, WHITE)
+            tela.blit(texto, texto.get_rect(center=rect.center))
+

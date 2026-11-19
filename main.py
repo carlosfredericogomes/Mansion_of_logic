@@ -6,13 +6,14 @@ from config.config import (
 )
 
 from src.regras import Duelo
-from src.telas import TelaDuelo, TelaExploracao
+from src.telas import TelaDuelo, TelaExploracao, TelaGameOver
 from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
 
 
 MENU = "MENU"
 EXPLORACAO = "EXPLORACAO"
 JOGO = "JOGO"
+GAME_OVER = "GAME_OVER"
 
 ANDAR_INICIAL = 1
 
@@ -45,6 +46,8 @@ def menu_inicial():
     estado = MENU
     tela_exploracao = None
     tela_duelo = None
+    tela_gameover = None
+    duelo = None
     dt = 0.0
     rodando = True
     while rodando:
@@ -62,26 +65,43 @@ def menu_inicial():
                 tela_exploracao.tratar_evento(evento)
             elif estado == JOGO:
                 tela_duelo.tratar_evento(evento)
+            elif estado == GAME_OVER:
+                tela_gameover.tratar_evento(evento)
 
         if estado == EXPLORACAO:
             tela_exploracao.atualizar(dt)
             if tela_exploracao.concluida:
                 # Encontro com o chefe: o Duelo começa em S1 (ENCONTRO_CHEFE).
-                tela_duelo = TelaDuelo(Duelo(ANDAR_INICIAL))
+                duelo = Duelo(ANDAR_INICIAL)
+                tela_duelo = TelaDuelo(duelo)                
                 tela_exploracao = None
                 estado = JOGO
         elif estado == JOGO:
             tela_duelo.atualizar(dt)
             if tela_duelo.concluida:
-                # Provisório: vitória (S5) e game over (S6) ainda não têm tela própria
-                # (c15 e c18). Por enquanto, ao fim do duelo o jogo volta ao menu.
-                estado = MENU
+                if duelo.game_over:
+                    tela_gameover = TelaGameOver()
+                    estado = GAME_OVER
+                else:
+                    estado = MENU   # provisório até existir a tela de vitória
                 tela_duelo = None
+        elif estado == GAME_OVER:
+            tela_gameover.atualizar(dt)
+            if tela_gameover.concluida:
+                if tela_gameover.acao == "tentar_novamente":
+                    duelo = Duelo(duelo.andar)
+                    tela_duelo = TelaDuelo(duelo)
+                    estado = JOGO
+                else:
+                    estado = MENU
+                tela_gameover = None
 
         if estado == MENU:
             desenhar_menu(tela, fundo, jogador, fonte, pygame.mouse.get_pos())
         elif estado == EXPLORACAO:
             tela_exploracao.desenhar(tela)
+        elif estado == GAME_OVER:
+            tela_gameover.desenhar(tela)
         else:
             tela_duelo.desenhar(tela)
 
