@@ -1,88 +1,14 @@
-from dataclasses import dataclass
+from src.chefes import CHEFES, JOGADOR_VIDAS,TOTAL_ANDARES, obter_chefe,perguntas_necessarias
+from src.questoes import carregar_perguntas
+from src.regras import Duelo
 
-from src.chefes import(
-    CUSTO_ACERTO, CUSTO_ERRO, JOGADOR_VIDAS, RESTAURAR_VIDAS_POR_ANDAR,TOTAL_ANDARES,obter_chefe, perguntas_necessarias
-)
-from src.questoes import baralho_perguntas, carregar_perguntas, problemas_das_perguntas
-from src.regras import Estado, Evento, proximo_estado, verificar_resposta
+PROXIMO_ANDAR = "PROXIMO_ANDAR"
+VITORIA = "VITORIA"
+GAME_OVER = "GAME_OVER"
 
-@dataclass
-
-class resultado_resposta:
-    acertou: bool
-    pergunta: dict
-    indice_escolhido: int
-    indice_correto: int
-    explicacao: str
-    vidas_chefe: int
-    vidas_jogador: int
-    estado: Estado
-
-class duelo: 
-    def __init__(self, andar, vida_jogador=JOGADOR_VIDAS, perguntas=None, rng=None):
-        self.andar = andar
-        self.chefe = obter_chefe(andar)
-        self.vidas_chefe = self.chefe["vidas"]
-        self.vidas_jogador = vida_jogador
-        if perguntas is None:
-            perguntas = carregar_perguntas(andar)
-        self.baralho = baralho_perguntas(perguntas, rng=rng)
-        self.historico = []
-        self.estado = proximo_estado(Estado.S0_EXPLORACAO, Evento.ENCONTRO_CHEFE) 
-        self.pergunta_atual = self.baralho.proxima()
-
-    def responder(self, indice_escolhido):
-        if self.estado != self.estado.S1_PERGUNTA:
-            raise RuntimeError(f"o duelo nao esta esperando resposta(estado{self.estado.name})")
-
-        pergunta = self.pergunta_atual
-        self.estado = proximo_estado(self.estado, Evento.CONFIRMOU_RESPOSTA)
-        acertou = verificar_resposta(pergunta, indice_escolhido)
-
-        if acertou:
-            self.estado = proximo_estado(self.estado, Evento.ACERTOU)
-            self.vidas_chefe = max(0, self.vidas_chefe - CUSTO_ACERTO)
-            evento = Evento.CHEFE_SEM_VIDAS if self.vidas_chefe == 0 else Evento.CHEFE_COM_VIDAS
-
-        else: 
-            self. estado = proximo_estado(self.estado, Evento.ERROU)
-            self.vidas_jogador = max(0, self.vidas_jogador - CUSTO_ERRO)
-            evento = Evento.JOGADOR_SEM_VIDAS if self.vidas_jogador == 0 else Evento.JOGADOR_COM_VIDAS
-        self.estado = proximo_estado(self.estado, evento)
-
-        resultado = resultado_resposta(
-            acertou=acertou,
-            pergunta=pergunta,
-            indice_escolhido=indice_escolhido,
-            indice_correto=pergunta["correta"],
-            explicacao=pergunta["explicacao"],
-            vidas_chefe=self.vidas_chefe,
-            vidas_jogador=self.vidas_jogador,
-            estado=self.estado,
-        )
-        self.historico.append(resultado)
-
-        self.pergunta_atual = self.baralho.proxima() if self.estado ==  Estado.S1_PERGUNTA else None
-        return resultado
-
-    @property
-    def vitoria(self):
-        return self.estado == Estado.S5_AVANCO_ANDAR
-
-    @property
-    def derrota(self):
-        return self.estado == Estado.S6_GAME_OVER
-
-    @property
-    def terminado(self):
-        return self.vitoria or self.derrota
-
-class Partida:
-    def __init__(self, carregador=carregar_perguntas, rng=None):
-        self.carregador = carregador
-        self.rng = rng
+class partida:
+    def __init__(self):
         self.andar_atual = 1
-        self.vidas_jogador = JOGADOR_VIDAS
         self.duelo = None
         self.chefes_derrotados = []
         self.venceu_jogo = False
@@ -91,77 +17,63 @@ class Partida:
     def chefe_atual(self):
         return obter_chefe(self.andar_atual)
 
-    @property
-    def game_over(self):
-        return self.duelo is not None and self.duelo.derrota
-
-    def iniciar_duelo(self):
+    def iniciar_duelo(self, perguntas=None):
         if self.venceu_jogo:
-            raise RuntimeError("O jogo já terminou: todos os chefes foram derrotados.")
-        self.duelo = duelo(
-            self.andar_atual,
-            vidas_jogador=self.vidas_jogador,
-            perguntas=self.carregador(self.andar_atual),
-            rng=self.rng,
-        )
+            raise RuntimeError("o jogo terminou: lobisomem foi derrotado")
+        if self.duelo is not None and not self.duelo.terminou:
+            raise RuntimeError("já existe um duelo em andamento")
+        self.duelo = Duelo(self.andar_atual, JOGADOR_VIDAS, perguntas)
         return self.duelo
 
-    def avancar_andar(self):
-        if self.duelo is None or not self.duelo.vitoria:
-            raise RuntimeError("Só é possível subir depois de derrotar o chefe do andar.")
+    def concluir_duelo(self):
+        if self.duelo is None or not self.duelo.terminou:
+            raise RuntimeError("duelo ainda não terminou")
+        duelo, self.duelo = self.duelo, None
 
-        self.chefes_derrotados.append(self.duelo.chefe["nome"])
-        self.vidas_jogador = JOGADOR_VIDAS if RESTAURAR_VIDAS_POR_ANDAR else self.duelo.vidas_jogador
-        self.duelo = None
+        if duelo.game_over:
+            self.andar_atual = 1
+            self.chefes_derrotados = []
+            return GAME_OVER
 
+        self.chefes_derrotados.append(CHEFES[duelo.andar]["nome"])
         if self.andar_atual == TOTAL_ANDARES:
             self.venceu_jogo = True
-            return False
+            return VITORIA
         self.andar_atual += 1
-        return True
+        return PROXIMO_ANDAR
 
-    def reiniciar_andar(self):
-        self.vidas_jogador = JOGADOR_VIDAS
-        self.duelo = None
-
+    def reiniciar(self):
+        self.__init__()
 
 def verificar_relacao_perguntas_chefes(carregador=carregar_perguntas):
     problemas = []
     ids_vistos = {}
-    dificuldade_anterior = 0
-    vidas_anteriores = 0
+    anterior = None
 
     for andar in range(1, TOTAL_ANDARES + 1):
         chefe = obter_chefe(andar)
         perguntas = carregador(andar)
 
         if len(perguntas) != chefe["perguntas"]:
-            problemas.append(
-                f"Andar {andar}: o chefe espera {chefe['perguntas']} perguntas, "
-                f"mas o arquivo tem {len(perguntas)}."
-            )
+            problemas.append(f"andar {andar}: o chefe espera {chefe['perguntas']} perguntas, mas o banco tem {len(perguntas)}")
+
         minimo = perguntas_necessarias(andar)
         if len(perguntas) < minimo:
-            problemas.append(
-                f"Andar {andar}: um duelo pode usar até {minimo} perguntas, "
-                f"mas só há {len(perguntas)}; elas acabariam e teriam que se repetir."
-            )
-        if chefe["dificuldade"] <= dificuldade_anterior:
-            problemas.append(f"Andar {andar}: a dificuldade não aumentou em relação ao andar anterior.")
-        if chefe["vidas"] < vidas_anteriores:
-            problemas.append(f"Andar {andar}: o chefe tem menos vidas que o do andar anterior.")
-        dificuldade_anterior = chefe["dificuldade"]
-        vidas_anteriores = chefe["vidas"]
+           problemas.append (f"andar {andar}: o duelo pode usar ate {minimo} perguntas, mas só há {len(perguntas)}; o banco acabaria bo meio do duelo")
+
+        if anterior is not None:
+            if chefe["vidas"] <= anterior["vidas"]:
+                problemas.append(f"andar{andar}: o chefe não tem mais coraçoes que o andar anterior")
+            if chefe["perguntas"] <= anterior["perguntas"]:
+                problemas.append(f"andar {andar}: o banco não é maior que o do andar anterior")
+        anterior = chefe
 
         for p in perguntas:
-            for erro in problemas_das_perguntas(p):
-                problemas.append(f"Andar {andar}, pergunta {p.get('id')}: {erro}.")
-            pid = p.get("id")
-            if pid in ids_vistos:
-                problemas.append(
-                    f"Pergunta {pid} aparece nos andares {ids_vistos[pid]} e {andar}."
-                )
-            ids_vistos[pid] = andar
+            if len(set(p["opcoes"])) != len(p["opcoes"]):
+                problemas.append(f"andar {andar}, perguntas {p["id"]}: tem alternativas repetidas")
+            if p ["id"] in ids_vistos:
+                problemas.append(f"pergunta {p['id']} aparece nos andares {ids_vistos[p['id']]} e {andar}")
+            ids_vistos[p['id']] = andar
 
     return problemas
-
+    
