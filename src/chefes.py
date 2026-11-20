@@ -1,10 +1,10 @@
 JOGADOR_VIDAS = 3
 
 CHEFES = {
-    1: {"nome": "Lobisomem",    "vidas": 3, "perguntas": 6},
+    1: {"nome": "Drácula",    "vidas": 3, "perguntas": 6},
     2: {"nome": "Frankenstein", "vidas": 4, "perguntas": 7},
     3: {"nome": "Musashi",      "vidas": 5, "perguntas": 8},
-    4: {"nome": "Drácula",      "vidas": 7, "perguntas": 10},
+    4: {"nome": "Lobisomem",      "vidas": 7, "perguntas": 10},
 }
 
 CUSTO_ACERTO = 1   
@@ -14,16 +14,16 @@ RESTAURAR_VIDAS_POR_ANDAR = True
 # informacoe sobre os chefes
 
 CHEFES_INFOS = {
-    1: {"nome": "lobisomem",
+    1: {"nome": "Drácula",
         "vidas": 3,
         "perguntas": 6,
         "dificuldade": 1,
         "rotulo_dificul": "Fácil",
         "tema": "Tradução simbólica e tabelas-verdade básicas",
-        "imagem": "chefe_lobisomem.png",
+        "imagem": "chefe_dracula.png",
         "fundo": "fundo_andar1.png",
-        "fala_entrada": "Uivos ecoam pelo salão... Prove que sua lógica é afiada!",
-        "fala_derrota": "O Lobisomem recua para as sombras. O caminho para cima está livre.",
+        "fala_entrada": "Boa noite, visitante... Prove que sua lógica é afiada!",
+        "fala_derrota": "Drácula se desfaz em morcegos. O caminho para cima está livre.",
      },
 
     2: { "nome": "Frankenstein",
@@ -47,19 +47,19 @@ CHEFES_INFOS = {
         "imagem": "chefe_musashi.png",
         "fundo": "fundo_andar3.png",
         "fala_entrada": "O guerreiro prepara sua espada. Apenas a precisão garante a vitória..",
-        "fala_derrota": "Musashi faz uma reverência. Resta apenas o senhor da mansão.",
+        "fala_derrota": "Musashi faz uma reverência. Resta apenas a fera no topo da mansão.",
     },
 
-    4: {"nome": "Drácula",
+    4: {"nome": "Lobisomem",
         "vidas": 7,
         "perguntas": 10,
         "dificuldade": 4,
         "rotulo_dificuldade": "Muito difícil",
         "tema": "Fórmulas compostas, equivalências e regras de inferência",
-        "imagem": "chefe_dracula.png",
+        "imagem": "chefe_lobisomem.png",
         "fundo": "fundo_andar4.png",
-        "fala_entrada": "Bem-vindo ao topo da mansão. Daqui, poucos saem...",
-        "fala_derrota": "Drácula vira pó ao amanhecer. A mansão está livre!",}
+        "fala_entrada": "Bem-vindo ao topo da mansão. Uivos ecoam... Daqui, poucos saem.",
+        "fala_derrota": "O lobisomem recua para as sombras. A mansão está livre!",}
 }
 
 TOTAL_ANDARES = len(CHEFES)

@@ -5,7 +5,7 @@ from config.config import COR_BORDA, COR_PLACEHOLDER, FONTE_NEGRITO, FONTE_PADRA
 
 # Artes incorporadas nesta etapa (andares 1 e 2). Os outros andares usam retângulo provisório.
 FUNDOS_ANDAR = {1: "fundo_andar1.png", 2: "fundo_andar2.png"}
-CHEFES_SPRITE = {1: "chefe_lobisomem.png", 2: "chefe_frankenstein.png"}
+CHEFES_SPRITE = {1: "chefe_dracula.png", 2: "chefe_frankenstein.png"}
 JOGADOR_SPRITE = "jogador_exterminador.png"
 JOGADOR_COSTAS_SPRITE = "jogador_exterminador_costas.png"
 # Cenas da caminhada até o primeiro confronto, na ordem (porta, salão e escada).
