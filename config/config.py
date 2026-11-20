@@ -19,11 +19,10 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 
-COR_BOTAO = (60, 30, 90)
-COR_BOTAO_HOVER = (110, 60, 160)
-COR_BORDA = (20, 16, 28)
 
 # Telas de pergunta e combate
+ALTURA_JOGADOR_MEDIA = 300      # altura (px) do Exterminador no menu e no combate
+
 COR_PAINEL = (28, 22, 40)
 COR_TEXTO = (240, 236, 245)
 COR_SELECIONADA = (110, 60, 160)
@@ -31,3 +30,10 @@ COR_ACERTO = (46, 170, 80)
 COR_ERRO = (205, 55, 55)
 COR_CORACAO = (225, 50, 75)
 COR_PLACEHOLDER = (120, 80, 160)
+COR_DANO = (150, 0, 0)         # somada ao personagem que leva dano (piscada vermelha)
+COR_GAME_OVER = (215, 25, 35)   # letras da tela de Game Over
+# ------------------------------------------------------------------------------
+
+COR_BOTAO = (60, 30, 90)
+COR_BOTAO_HOVER = (110, 60, 160)
+COR_BORDA = (20, 16, 28)

@@ -2,7 +2,7 @@ import sys
 import pygame
 
 from config.config import (
-    COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
+    ALTURA_JOGADOR_MEDIA, COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
 )
 
 from src.regras import Duelo
@@ -41,7 +41,7 @@ def menu_inicial():
     fonte = pygame.font.Font(None, 48)
 
     fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)    # Exterminador reduzido (256x320 -> 154x192) para não cobrir a porta da mansão.
-    jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), 200)
+    jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), ALTURA_JOGADOR_MEDIA)
 
     estado = MENU
     tela_exploracao = None
@@ -57,8 +57,10 @@ def menu_inicial():
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
             elif estado == MENU:
-                if (evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1
-                        and BOTAO.collidepoint(evento.pos)):
+                clicou = (evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1
+                          and BOTAO.collidepoint(evento.pos))
+                apertou_enter = evento.type == pygame.KEYDOWN and evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
+                if clicou or apertou_enter:
                     tela_exploracao = TelaExploracao()  # S0: o Exterminador caminha até o chefe
                     estado = EXPLORACAO
             elif estado == EXPLORACAO:
