@@ -4,8 +4,8 @@ import pygame
 from config.config import COR_BORDA, COR_PLACEHOLDER, FONTE_NEGRITO, FONTE_PADRAO, FONTES_DIR, IMAGENS_DIR
 
 # Artes incorporadas nesta etapa (andares 1 e 2). Os outros andares usam retângulo provisório.
-FUNDOS_ANDAR = {1: "fundo_andar1.png", 2: "fundo_andar2.png"}
-CHEFES_SPRITE = {1: "chefe_dracula.png", 2: "chefe_frankenstein.png"}
+FUNDOS_ANDAR = {1: "fundo_andar1.png", 2: "fundo_andar2.png", 3: "fundo_andar3.png", 4: "fundo_andar4.png"}
+CHEFES_SPRITE = {1: "chefe_dracula.png", 2: "chefe_frankenstein.png", 3: "chefe_musashi.png", 4: "chefe_lobisomem.png"}
 JOGADOR_SPRITE = "jogador_exterminador.png"
 JOGADOR_COSTAS_SPRITE = "jogador_exterminador_costas.png"
 # Cenas da caminhada até o primeiro confronto, na ordem (porta, salão e escada).
