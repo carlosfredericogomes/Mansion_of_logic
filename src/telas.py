@@ -9,7 +9,7 @@ from config.config import (
     COR_SELECIONADA, COR_TEXTO, HEIGHT, WIDTH,
 )
 from src.recursos import (
-    CHEFES_SPRITE, FUNDOS_ANDAR, FUNDOS_EXPLORACAO, JOGADOR_COSTAS_SPRITE, JOGADOR_SPRITE,
+    CHEFES_SPRITE, FUNDOS_ANDAR, FUNDOS_EXPLORACAO, JOGADOR_COSTAS_SPRITE, JOGADOR_ESQUERDA_SPRITE, JOGADOR_SPRITE,
     carregar_fonte, carregar_imagem, redimensionar_por_altura,
 )
 from src.chefes import CHEFES
@@ -205,6 +205,14 @@ class TelaExploracao:
         self.concluida = False
         self.fundos = [carregar_imagem(nome, (WIDTH, HEIGHT)) for nome in FUNDOS_EXPLORACAO[andar]]
         self.sprite = _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_COSTAS_SPRITE), ALTURA_REF_EXPLORADOR)
+        esquerda = _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_ESQUERDA_SPRITE), ALTURA_REF_EXPLORADOR)
+        self.sprites = {
+            "cima":     self.sprite,
+            "baixo":    _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_SPRITE), ALTURA_REF_EXPLORADOR),
+            "esquerda": esquerda,
+            "direita":  pygame.transform.flip(esquerda, True, False),
+        }
+        self.direcao = "cima"
         self.escuro = pygame.Surface((WIDTH, HEIGHT))
         self.escuro.fill((0, 0, 0))
         self._iniciar_cena(0)
@@ -262,6 +270,15 @@ class TelaExploracao:
         dx, dy = direita - esquerda, baixo - cima
         if dx and dy:  # na diagonal não anda mais rápido
             dx, dy = dx * math.sqrt(0.5), dy * math.sqrt(0.5)
+        # vira o boneco conforme a tecla; parado, mantém a última direção
+        if dx > 0:
+            self.direcao = "direita"
+        elif dx < 0:
+            self.direcao = "esquerda"
+        elif dy > 0:
+            self.direcao = "baixo"
+        elif dy < 0:
+            self.direcao = "cima"
 
         cena = self.cenas[self.cena]
         y_ini, y_fim = cena["y"]
@@ -283,7 +300,7 @@ class TelaExploracao:
             fase = self.tempo_andando * PASSOS_POR_SEGUNDO * math.pi
             angulo = 3.0 * math.sin(fase)
             escala *= 1.0 + 0.03 * abs(math.sin(fase))
-        figura = pygame.transform.rotozoom(self.sprite, angulo, escala)
+        figura = pygame.transform.rotozoom(self.sprites[self.direcao], angulo, escala)
 
         superficie.blit(self.fundos[self.cena], (0, 0))
         superficie.blit(figura, figura.get_rect(center=(round(self.x), round(self.y))))
