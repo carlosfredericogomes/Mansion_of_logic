@@ -42,4 +42,4 @@ def carregar_perguntas(andar):
     esperado = CHEFES.get(andar, {}).get("perguntas")
     if esperado is not None and len(perguntas) < esperado:
         warnings.warn(f"andar {andar}: o banco tem {len(perguntas)} perguntas, mas o esperado é {esperado}",UserWarning, stacklevel=2)
-        return perguntas
+    return perguntas
