@@ -65,6 +65,15 @@ CENAS = (
     {"tempo": 3.6, "y": (705, 528), "escala": (0.70, 0.30), "x_ini": (380, 900), "x_fim": (540, 740)},   # salão
     {"tempo": 5.5, "y": (710, 378), "escala": (0.70, 0.22), "x_ini": (300, 980), "x_fim": (520, 760)},   # escada
 )
+# Andares 2 a 4: sobe a escada e depois anda pelo corredor até a porta do chefe.
+CENA_ESCADA = {"tempo": 4.5, "y": (700, 412), "escala": (0.75, 0.34), "x_ini": (250, 1030), "x_fim": (520, 760)}
+CENA_CORREDOR = {"tempo": 4.5, "y": (700, 412), "escala": (0.75, 0.34), "x_ini": (250, 1030), "x_fim": (520, 760)}
+CENAS_POR_ANDAR = {
+    1: CENAS,
+    2: (CENA_ESCADA, CENA_CORREDOR),
+    3: (CENA_ESCADA, CENA_CORREDOR),
+    4: (CENA_ESCADA, CENA_CORREDOR),
+}
 X_INICIAL = 640
 VELOCIDADE_LATERAL = 170     # px/s para os lados, no tamanho inicial (diminui ao se afastar)
 ALTURA_REF_EXPLORADOR = 276  # altura (px) do desenho do Exterminador quando a escala da cena é 1.0
@@ -188,11 +197,13 @@ class TelaExploracao:
     sem sair do caminho. Chegar ao fim de uma cena leva à próxima; no topo da escada a tela
     fica `concluida` e o main começa o duelo (evento ENCONTRO_CHEFE). Enter ou Espaço pulam."""
 
-    def __init__(self):
+    def __init__(self, andar=1):
+        self.andar = andar
+        self.cenas = CENAS_POR_ANDAR[andar]
         self.tempo_andando = 0.0  # só conta enquanto anda, para o ritmo dos passos
         self.andando = False
         self.concluida = False
-        self.fundos = [carregar_imagem(nome, (WIDTH, HEIGHT)) for nome in FUNDOS_EXPLORACAO]
+        self.fundos = [carregar_imagem(nome, (WIDTH, HEIGHT)) for nome in FUNDOS_EXPLORACAO[andar]]
         self.sprite = _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_COSTAS_SPRITE), ALTURA_REF_EXPLORADOR)
         self.escuro = pygame.Surface((WIDTH, HEIGHT))
         self.escuro.fill((0, 0, 0))

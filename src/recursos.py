@@ -9,11 +9,12 @@ CHEFES_SPRITE = {1: "chefe_dracula.png", 2: "chefe_frankenstein.png"}
 JOGADOR_SPRITE = "jogador_exterminador.png"
 JOGADOR_COSTAS_SPRITE = "jogador_exterminador_costas.png"
 # Cenas da caminhada até o primeiro confronto, na ordem (porta, salão e escada).
-FUNDOS_EXPLORACAO = (
-    "fundo_exploracao_2_porta.png",
-    "fundo_exploracao_3_salao.png",
-    "fundo_exploracao_4_escada.png",
-)
+FUNDOS_EXPLORACAO = {
+    1: ("fundo_exploracao_2_porta.png", "fundo_exploracao_3_salao.png", "fundo_exploracao_4_escada.png"),
+    2: ("escada_frank.png", "corredor_frank.png"),
+    3: ("escada_musashi.png", "corredor_musashi.png"),
+    4: ("escada_lobisomen.png", "corredor_lobisomen.png"),
+}
 
 _cache_imagens = {}
 _cache_fontes = {}

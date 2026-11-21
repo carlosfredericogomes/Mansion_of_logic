@@ -64,7 +64,7 @@ def menu_inicial():
                 apertou_enter = evento.type == pygame.KEYDOWN and evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
                 if clicou or apertou_enter:
                     andar = ANDAR_INICIAL
-                    tela_exploracao = TelaExploracao()  # S0: o Exterminador caminha até o chefe
+                    tela_exploracao = TelaExploracao(andar)  # S0: o Exterminador caminha até o chefe
                     estado = EXPLORACAO
             elif estado == EXPLORACAO:
                 tela_exploracao.tratar_evento(evento)
@@ -90,8 +90,9 @@ def menu_inicial():
                     tela_duelo = None
                 elif andar < TOTAL_ANDARES:
                     andar += 1
-                    duelo = Duelo(andar)
-                    tela_duelo = TelaDuelo(duelo)   # segue direto para o duelo do próximo andar
+                    tela_exploracao = TelaExploracao(andar)   # sobe a escada e anda pelo corredor
+                    tela_duelo = None
+                    estado = EXPLORACAO
                 else:
                     estado = MENU   # provisório: zerou o jogo (ainda não existe tela de vitória)
                     tela_duelo = None
