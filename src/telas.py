@@ -211,23 +211,23 @@ class TelaExploracao:
 
     def _iniciar_cena(self, indice):
         self.cena = indice
-        self.y = float(CENAS[indice]["y"][0])
+        self.y = float(self.cenas[indice]["y"][0])
         self.x = float(self._limitar_x(X_INICIAL, self.y))
         self.fade_entrada = FADE_TEMPO   # escurece no começo da cena
         self.fade_saida = None           # vira um tempo quando o jogador chega ao fim da cena
 
     def _progresso(self):
         """0 no início do caminho e 1 no fim."""
-        y0, y1 = CENAS[self.cena]["y"]
+        y0, y1 = self.cenas[self.cena]["y"]
         return max(0.0, min(1.0, (y0 - self.y) / (y0 - y1)))
 
     def _escala_bruta(self):
-        s0, s1 = CENAS[self.cena]["escala"]
+        s0, s1 = self.cenas[self.cena]["escala"]
         return s0 + (s1 - s0) * self._progresso()
 
     def _limitar_x(self, x, y=None):
         """Mantém o x dentro do caminho, que estreita conforme ele se afasta."""
-        cena = CENAS[self.cena]
+        cena = self.cenas[self.cena]
         y = self.y if y is None else y
         y0, y1 = cena["y"]
         u = max(0.0, min(1.0, (y0 - y) / (y0 - y1)))
@@ -246,7 +246,7 @@ class TelaExploracao:
         if self.fade_saida is not None:  # chegou ao fim da cena: escurece e troca
             self.fade_saida += dt
             if self.fade_saida >= FADE_TEMPO:
-                if self.cena + 1 >= len(CENAS):
+                if self.cena + 1 >= len(self.cenas):
                     self.concluida = True
                 else:
                     self._iniciar_cena(self.cena + 1)
@@ -263,7 +263,7 @@ class TelaExploracao:
         if dx and dy:  # na diagonal não anda mais rápido
             dx, dy = dx * math.sqrt(0.5), dy * math.sqrt(0.5)
 
-        cena = CENAS[self.cena]
+        cena = self.cenas[self.cena]
         y_ini, y_fim = cena["y"]
         velocidade_frente = (y_ini - y_fim) / cena["tempo"]
         velocidade_lado = VELOCIDADE_LATERAL * self._escala_bruta() / cena["escala"][0]  # mais devagar ao longe
