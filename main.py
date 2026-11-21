@@ -8,6 +8,7 @@ from config.config import (
 from src.regras import Duelo
 from src.telas import TelaDuelo, TelaExploracao, TelaGameOver
 from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
+from src.chefes import TOTAL_ANDARES
 
 
 MENU = "MENU"
@@ -48,6 +49,7 @@ def menu_inicial():
     tela_duelo = None
     tela_gameover = None
     duelo = None
+    andar = ANDAR_INICIAL
     dt = 0.0
     rodando = True
     while rodando:
@@ -61,6 +63,7 @@ def menu_inicial():
                           and BOTAO.collidepoint(evento.pos))
                 apertou_enter = evento.type == pygame.KEYDOWN and evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
                 if clicou or apertou_enter:
+                    andar = ANDAR_INICIAL
                     tela_exploracao = TelaExploracao()  # S0: o Exterminador caminha até o chefe
                     estado = EXPLORACAO
             elif estado == EXPLORACAO:
@@ -74,7 +77,7 @@ def menu_inicial():
             tela_exploracao.atualizar(dt)
             if tela_exploracao.concluida:
                 # Encontro com o chefe: o Duelo começa em S1 (ENCONTRO_CHEFE).
-                duelo = Duelo(ANDAR_INICIAL)
+                duelo = Duelo(andar)
                 tela_duelo = TelaDuelo(duelo)                
                 tela_exploracao = None
                 estado = JOGO
@@ -84,9 +87,14 @@ def menu_inicial():
                 if duelo.game_over:
                     tela_gameover = TelaGameOver()
                     estado = GAME_OVER
+                    tela_duelo = None
+                elif andar < TOTAL_ANDARES:
+                    andar += 1
+                    duelo = Duelo(andar)
+                    tela_duelo = TelaDuelo(duelo)   # segue direto para o duelo do próximo andar
                 else:
-                    estado = MENU   # provisório até existir a tela de vitória
-                tela_duelo = None
+                    estado = MENU   # provisório: zerou o jogo (ainda não existe tela de vitória)
+                    tela_duelo = None
         elif estado == GAME_OVER:
             tela_gameover.atualizar(dt)
             if tela_gameover.concluida:
