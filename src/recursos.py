@@ -8,6 +8,7 @@ FUNDOS_ANDAR = {1: "fundo_andar1.png", 2: "fundo_andar2.png", 3: "fundo_andar4.p
 CHEFES_SPRITE = {1: "chefe_dracula.png", 2: "chefe_frankenstein.png", 3: "chefe_musashi.png", 4: "chefe_lobisomem.png"}
 JOGADOR_SPRITE = "jogador_exterminador.png"
 JOGADOR_COSTAS_SPRITE = "jogador_exterminador_costas.png"
+JOGADOR_ESQUERDA_SPRITE = "jogador_exterminador_esquerda.png"
 # Cenas da caminhada até o primeiro confronto, na ordem (porta, salão e escada).
 FUNDOS_EXPLORACAO = {
     1: ("fundo_exploracao_2_porta.png", "fundo_exploracao_3_salao.png", "fundo_exploracao_4_escada.png"),
