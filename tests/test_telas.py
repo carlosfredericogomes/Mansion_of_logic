@@ -5,14 +5,19 @@ import os
 from collections import defaultdict
 
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
+os.environ.setdefault("SDL_AUDIODRIVER", "dummy")   # os testes não tocam som de verdade
 
 import pygame
 import pytest
 
-from config.config import FONTE_PADRAO, FONTES_DIR
+from config.config import COR_OURO, FONTE_PADRAO, FONTES_DIR, SONS_DIR
+from src import recursos
 from src.regras import Duelo
 from src import telas
-from src.telas import TelaDuelo, TelaExploracao, TelaGameOver, curva_golpe, quebrar_texto
+from src.tela_conclusao import TelaConclusao
+from src.telas import (
+    TelaAndarConcluido, TelaDuelo, TelaExploracao, TelaGameOver, curva_golpe, desenhar_estrela, quebrar_texto,
+)
 
 
 class FonteFalsa:
@@ -316,3 +321,207 @@ def test_game_over_desenha_preto_com_letras_vermelhas(janela):
     tela.desenhar(alvo)
     canto = [alvo.get_at((x, y))[:3] for x in range(900, 1250) for y in range(660, 700)]
     assert any(c != (0, 0, 0) for c in canto)              # mensagem apareceu no canto inferior direito
+
+
+def test_game_over_tambem_volta_ao_menu_com_clique(janela):
+    tela = TelaGameOver()
+    clique = pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(100, 100))
+    tela.tratar_evento(clique)
+    assert not tela.concluida                              # a mensagem ainda não apareceu
+    tela.atualizar(2.1)
+    tela.tratar_evento(clique)
+    assert tela.concluida and tela.acao == "menu"
+
+
+# --- Mouse na tela de pergunta (além do teclado) ---
+
+def _centro_da_opcao(tela, i):
+    rect = tela._retangulos_opcoes(tela.duelo.pergunta_atual)[i]
+    return rect.move(telas.PAINEL.x, telas.PAINEL.y).center
+
+
+def test_passar_o_mouse_seleciona_a_alternativa(janela):
+    tela = TelaDuelo(Duelo(1))
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEMOTION, pos=_centro_da_opcao(tela, 2), rel=(0, 0), buttons=(0, 0, 0)))
+    assert tela.selecionada == 2 and tela.fase == telas.FASE_PERGUNTA   # só destaca, não responde
+
+
+def test_clicar_na_alternativa_escolhe_e_confirma(janela):
+    tela = TelaDuelo(Duelo(1))
+    correta = tela.duelo.pergunta_atual["correta"]
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=_centro_da_opcao(tela, correta)))
+    assert tela.fase == telas.FASE_PISCADA and tela.escolhida == correta
+    assert tela.duelo.ultimo_acertou is True and tela.duelo.vidas_chefe == 2
+
+
+def test_clicar_fora_das_alternativas_nao_faz_nada(janela):
+    tela = TelaDuelo(Duelo(1))
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(5, 5)))
+    assert tela.fase == telas.FASE_PERGUNTA and tela.escolhida is None
+
+
+def test_botao_direito_nao_responde(janela):
+    tela = TelaDuelo(Duelo(1))
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=3, pos=_centro_da_opcao(tela, 0)))
+    assert tela.fase == telas.FASE_PERGUNTA
+
+
+def test_clique_na_tela_de_resultado_continua(janela):
+    tela = TelaDuelo(Duelo(1))
+    _responder(tela, certo=True)
+    _avancar(tela, telas.FLASH_TEMPO + telas.ATAQUE_TEMPO + telas.ESPERA_MINIMA + 0.1)
+    assert tela.fase == telas.FASE_RESULTADO
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(640, 360)))
+    assert tela.fase == telas.FASE_PERGUNTA
+
+
+def test_teclado_continua_funcionando_junto_com_o_mouse(janela):
+    tela = TelaDuelo(Duelo(1))
+    tela.tratar_evento(tecla(pygame.K_DOWN))
+    assert tela.selecionada == 1
+    tela.tratar_evento(tecla(pygame.K_3))
+    assert tela.selecionada == 2
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert tela.fase == telas.FASE_PISCADA
+
+
+# --- Estrelas e tela de andar concluído ---
+
+def test_estrela_preenchida_e_dourada_e_a_vazia_nao(janela):
+    alvo = pygame.display.get_surface()
+    alvo.fill((0, 0, 0))
+    desenhar_estrela(alvo, (100, 100), 40, True)
+    desenhar_estrela(alvo, (300, 100), 40, False)
+    assert alvo.get_at((100, 100))[:3] == COR_OURO
+    assert alvo.get_at((300, 100))[:3] != COR_OURO
+
+
+def _tela_andar(pode_repetir=True, estrelas=1, melhor=1):
+    tela = TelaAndarConcluido(1, estrelas, melhor, pode_repetir)
+    tela.atualizar(telas.ANDAR_CONCLUIDO_ESPERA + 0.1)
+    return tela
+
+
+def test_andar_concluido_comeca_em_continuar_para_nao_repetir_sem_querer(janela):
+    tela = _tela_andar()
+    assert tela.acoes == ["repetir", "continuar"]
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert tela.concluida and tela.acao == "continuar"
+
+
+def test_andar_concluido_escolhe_repetir_com_setas_ou_numero(janela):
+    for teclas in ([pygame.K_UP], [pygame.K_LEFT], [pygame.K_1]):
+        tela = _tela_andar()
+        for t in teclas:
+            tela.tratar_evento(tecla(t))
+        tela.tratar_evento(tecla(pygame.K_RETURN))
+        assert tela.acao == "repetir", teclas
+
+
+def test_com_3_estrelas_so_ha_a_opcao_continuar(janela):
+    tela = _tela_andar(pode_repetir=False, estrelas=3, melhor=3)
+    assert tela.acoes == ["continuar"]
+    tela.tratar_evento(tecla(pygame.K_UP))
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert tela.acao == "continuar"
+
+
+def test_andar_concluido_ignora_teclas_no_primeiro_instante(janela):
+    tela = TelaAndarConcluido(1, 1, 1, True)
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert not tela.concluida
+
+
+def test_andar_concluido_com_mouse(janela):
+    tela = _tela_andar()
+    centro_repetir = tela._retangulo_opcao(0).center
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEMOTION, pos=centro_repetir, rel=(0, 0), buttons=(0, 0, 0)))
+    assert tela.selecionada == 0 and not tela.concluida     # passar o mouse só destaca
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=centro_repetir))
+    assert tela.concluida and tela.acao == "repetir"
+
+
+@pytest.mark.parametrize("andar", [1, 2, 3, 4])
+def test_andar_concluido_desenha_em_todos_os_andares(janela, andar):
+    TelaAndarConcluido(andar, 2, 3, False).desenhar(pygame.display.get_surface())
+    _tela_andar().desenhar(pygame.display.get_surface())
+
+
+# --- Vitória ---
+
+def test_vitoria_mostra_a_pontuacao_e_so_volta_ao_menu_depois_da_mensagem(janela):
+    tela = TelaConclusao(pontuacao=9)
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert not tela.concluida
+    tela.atualizar(20.0)
+    tela.desenhar(pygame.display.get_surface())
+    tela.tratar_evento(tecla(pygame.K_RETURN))
+    assert tela.concluida and tela.acao == "menu"
+
+
+def test_vitoria_tambem_volta_ao_menu_com_clique(janela):
+    tela = TelaConclusao(pontuacao=12)
+    tela.atualizar(20.0)
+    tela.tratar_evento(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1, pos=(10, 10)))
+    assert tela.concluida
+
+
+def test_vitoria_funciona_sem_pontuacao(janela):
+    TelaConclusao().desenhar(pygame.display.get_surface())
+
+
+# --- Exploração dos 4 andares ---
+
+@pytest.mark.parametrize("andar", [1, 2, 3, 4])
+def test_exploracao_de_cada_andar_leva_ao_chefe(janela, andar):
+    tela = TelaExploracao(andar)
+    cenas = [tela.cena]
+    for _ in range(round(40 * 60)):
+        tela.atualizar(1 / 60, teclado(pygame.K_w))
+        if tela.cena != cenas[-1]:
+            cenas.append(tela.cena)
+        if tela.concluida:
+            break
+    assert tela.concluida
+    assert len(cenas) == len(telas.CENAS_POR_ANDAR[andar])
+
+
+# --- Sons ---
+
+@pytest.mark.parametrize("nome", [recursos.SOM_ACERTO, recursos.SOM_ERRO, recursos.SOM_VITORIA, recursos.SOM_GAME_OVER, *recursos.SOM_PASSOS])
+def test_os_sons_existem_e_carregam(nome):
+    assert (SONS_DIR / nome).exists()
+    pygame.mixer.init()
+    assert pygame.mixer.Sound(SONS_DIR / nome).get_length() > 0.1
+
+
+def test_tocar_som_nao_quebra_se_o_arquivo_nao_existir():
+    recursos.tocar_som("nao_existe.wav")        # só avisa no terminal, não levanta erro
+    recursos.tocar_som(recursos.SOM_ACERTO)
+
+
+def test_passos_tocam_so_enquanto_anda_e_no_ritmo_da_animacao(janela, monkeypatch):
+    tocados = []
+    monkeypatch.setattr(telas, "tocar_som", tocados.append)
+    tela = TelaExploracao(1)
+    parado = defaultdict(bool)
+    andando = defaultdict(bool, {pygame.K_w: True})
+    tela.atualizar(0.5, parado)
+    assert tocados == []                                 # parado: sem passos
+    for _ in range(10):
+        tela.atualizar(0.1, andando)                     # 1 s andando
+    assert set(tocados) <= set(recursos.SOM_PASSOS) and len(set(tocados)) > 1   # alterna as variações
+    assert 3 <= len(tocados) <= 5                        # ~3,2 passos por segundo (+ o primeiro)
+    tocados.clear()
+    tela.atualizar(0.1, parado)
+    assert tocados == []
+
+
+def test_responder_toca_o_som_certo(janela, monkeypatch):
+    tocados = []
+    monkeypatch.setattr(telas, "tocar_som", tocados.append)
+    tela = TelaDuelo(Duelo(1))
+    _responder(tela, certo=True)
+    tela2 = TelaDuelo(Duelo(1))
+    _responder(tela2, certo=False)
+    assert tocados == [recursos.SOM_ACERTO, recursos.SOM_ERRO]

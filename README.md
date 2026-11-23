@@ -43,20 +43,22 @@ O jogador controla o **Exterminador**, que precisa escapar da mansão. Em cada a
 
 ## Como o jogo funciona
 
-1. No **menu**, o jogador clica em **COMEÇAR** e entra na mansão.
-2. Na **exploração**, move o Exterminador com as teclas **W, A, S e D** até o encontro com o chefe do andar.
-3. No **duelo**, aparece uma pergunta de lógica com 4 alternativas:
-   - **Acertou:** o chefe perde 1 coração.
-   - **Errou:** o Exterminador perde 1 coração e a tela mostra a explicação da resposta certa.
-4. Quando o chefe fica com 0 corações, o jogador **vence o andar** e sobe.
-5. Se o Exterminador perde **todos os corações**, aparece a tela de **GAME OVER** e o jogador **recomeça o jogo**, a partir do **andar 1**.
-6. Ao derrotar o chefe do 4º andar, o jogador **vence o jogo**.
+1. No **menu**, o jogador aperta **Enter** (ou clica em **COMEÇAR**) e entra na mansão.
+2. Na **exploração**, move o Exterminador com **W, A, S e D** (ou com as setas) até o encontro com o chefe do andar.
+3. No **duelo**, aparece uma pergunta de lógica com 3 ou 4 alternativas:
+   - **Acertou:** o Exterminador golpeia e o chefe perde 1 coração.
+   - **Errou:** o chefe golpeia e o Exterminador perde 1 coração. A tela mostra a explicação da resposta certa.
+4. Quando o chefe fica com 0 corações, o jogador **vence o andar** e ganha de 1 a 3 **estrelas**, conforme os corações que sobraram.
+5. Se ainda dá para ganhar mais estrelas, o jogo oferece uma **nova chance** contra o mesmo chefe, sem reiniciar a partida. O andar fica com a **melhor** pontuação.
+6. Se o Exterminador perde **todos os corações**, aparece a tela de **GAME OVER** e o jogo volta ao **menu**, para recomeçar do **andar 1**.
+7. Ao derrotar o chefe do 4º andar, o jogador **vence o jogo** e vê a **pontuação final** (soma das estrelas dos 4 andares, de 0 a 12).
 
 ### Regras de vida
 
 - O Exterminador tem **3 corações**, e eles **voltam a 3 ao passar para o próximo andar**.
 - Cada coração é uma vida inteira (não há meio coração).
 - Cada acerto ou erro vale exatamente 1 coração.
+- Estrelas de cada andar: **3 corações = 3 estrelas, 2 corações = 2 estrelas, 1 coração = 1 estrela**. Uma nova chance no mesmo andar também começa com os 3 corações cheios.
 - As perguntas de cada duelo são **sorteadas** (biblioteca `random`) e **não se repetem dentro do mesmo duelo**.
 - Não há armas, equipamentos nem inimigos secundários.
 
@@ -101,7 +103,7 @@ Na pasta raiz do projeto:
 python main.py
 ```
 
-A janela abre em **1280×720 a 60 FPS**. Use **F11** para alternar tela cheia.
+O jogo abre em **tela cheia** (desenha em 1280×720 a 60 FPS e o pygame escala para o monitor). Use **F11** para alternar entre tela cheia e janela. O jogo pode ser jogado **só com o teclado**; o mouse também funciona nos menus e nas alternativas.
 
 ---
 
@@ -109,14 +111,17 @@ A janela abre em **1280×720 a 60 FPS**. Use **F11** para alternar tela cheia.
 
 | Onde | Tecla ou ação | O que faz |
 |---|---|---|
-| Menu | Clique em **COMEÇAR** | Inicia o jogo |
-| Exploração | `W` | Move o Exterminador para a frente |
-| Exploração | `S` | Move o Exterminador para trás |
-| Exploração | `A` | Move o Exterminador para a esquerda |
-| Exploração | `D` | Move o Exterminador para a direita |
+| Menu | `Enter` ou clique em **COMEÇAR** | Inicia o jogo |
+| Exploração | `W` ou `↑` | Move o Exterminador para a frente |
+| Exploração | `S` ou `↓` | Move o Exterminador para trás |
+| Exploração | `A` ou `←` | Move o Exterminador para a esquerda |
+| Exploração | `D` ou `→` | Move o Exterminador para a direita |
+| Exploração | `Enter` ou `Espaço` | Pula a exploração e vai direto ao chefe |
 | Duelo | Setas `↑` `↓` ou teclas `1` a `4` | Escolhe a alternativa |
-| Duelo | `Enter` | Confirma a resposta e avança |
-| Game over | Botão na tela | Recomeça o jogo |
+| Duelo | `Enter` | Confirma a resposta e, depois do golpe, avança |
+| Duelo | Mouse | Passar por cima destaca a alternativa e clicar confirma |
+| Andar concluído | `↑` `↓` ou `1` e `2`, e `Enter` | Escolhe entre tentar de novo e continuar |
+| Game over e vitória | `Enter` (ou clique) | Volta ao menu |
 | Qualquer tela | `F11` | Alterna tela cheia |
 
 ---
@@ -139,10 +144,11 @@ Total de **31 perguntas**. Cada banco cobre o pior caso de um duelo (vida do che
 ```
 Mansion_of_logic/
 ├── assets/
-│   ├── imagens/
-│   └── fontes/             # DejaVu Sans (tem os símbolos lógicos)
+│   ├── imagens/            # fundos, chefes, Exterminador (frente, costas e lado)
+│   ├── fontes/             # DejaVu Sans (tem os símbolos lógicos)
+│   └── sons/               # acerto, erro, vitória, game over (mp3) e passos
 ├── config/
-│   └── config.py           # constantes: 1280x720, 60 FPS, cores, velocidade
+│   └── config.py           # constantes: 1280x720, 60 FPS, caminhos, cores
 ├── perguntas/
 │   ├── andar_1.json        # banco de perguntas de cada andar
 │   ├── andar_2.json
@@ -151,14 +157,17 @@ Mansion_of_logic/
 ├── src/
 │   ├── __init__.py
 │   ├── chefes.py           # dados dos 4 chefes e vidas do jogador (sem pygame)
-│   ├── progressao.py       # progressão entre os andares
+│   ├── progressao.py       # partida: andar atual, estrelas, nova chance e pontuação (sem pygame)
 │   ├── questoes.py         # carrega e valida os JSON de perguntas (sem pygame)
-│   ├── recursos.py         # carrega imagens e fontes com cache
+│   ├── recursos.py         # carrega imagens, fontes e sons com cache
 │   ├── regras.py           # estados, eventos, transições e motor de duelo (sem pygame)
-│   └── telas.py            # telas: menu, exploração, duelo, game over, vitória
+│   ├── tela_conclusao.py   # tela de vitória (pontuação final e integrantes)
+│   └── telas.py            # telas: exploração, duelo, andar concluído (estrelas) e game over
 ├── tests/
 │   ├── test_regras.py
-│   └── test_telas.py
+│   ├── test_progressao.py
+│   ├── test_telas.py
+│   └── test_jogo_completo.py   # o jogo inteiro rodando pelo main.py, só com teclado
 ├── .gitignore
 ├── CLAUDE.md
 ├── main.py                 # laço principal e troca de telas
@@ -194,7 +203,7 @@ Na pasta raiz:
 python -m pytest
 ```
 
-Os testes cobrem a máquina de estados, o carregamento e a validação das perguntas, o motor de duelo (acerto, erro, game over, pior caso nos 4 andares, sem repetição de perguntas) e a quebra de linha dos enunciados.
+Os testes cobrem a máquina de estados, o carregamento e a validação das perguntas, o motor de duelo (acerto, erro, game over, pior caso nos 4 andares, sem repetição de perguntas), a progressão (estrelas, nova chance, pontuação e vitória), as telas (quebra de linha, golpes, mouse, exploração dos 4 andares, game over e vitória), os sons e uma partida completa do menu até a vitória.
 
 ---
 
@@ -202,7 +211,7 @@ Os testes cobrem a máquina de estados, o carregamento e a validação das pergu
 
 - As perguntas ficam em `perguntas/andar_N.json`, em **UTF-8**, e vêm da lista de exercícios de lógica da disciplina.
 - A dificuldade sobe com os andares: **fáceis, médias e difíceis**, de acordo com a progressão.
-- Cada pergunta tem enunciado, 4 alternativas, a alternativa correta e uma explicação mostrada depois de um erro.
+- Cada pergunta tem enunciado, 3 ou 4 alternativas (o jogo as embaralha), a alternativa correta e uma explicação mostrada depois de um erro.
 - Os enunciados usam símbolos como ∧, ∨, ¬, → e ↔, por isso o jogo usa a fonte **DejaVu Sans**, que tem todos eles.
 - O validador (`questoes.py`) confere o formato e o tamanho dos bancos ao carregar.
 
@@ -214,6 +223,7 @@ Os testes cobrem a máquina de estados, o carregamento e a validação das pergu
 |---|---|---|
 | pygame | https://www.pygame.org | LGPL |
 | Fonte DejaVu Sans | https://dejavu-fonts.github.io | Licença livre da DejaVu (o texto está em `assets/fontes/`) |
+| Efeitos sonoros (`assets/sons/`, exceto o game over) | Gerados por código pela própria equipe (ondas simples, sem material de terceiros) | Sem restrição |
 | Lista de perguntas | Lista de exercícios da disciplina Lógica para Computação | Material da disciplina |
 
 ---

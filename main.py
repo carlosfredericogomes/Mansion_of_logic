@@ -5,18 +5,18 @@ from config.config import (
     ALTURA_JOGADOR_MEDIA, COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
 )
 
-from src.regras import Duelo
-from src.telas import TelaDuelo, TelaExploracao, TelaGameOver
+from src.progressao import ANDAR_CONCLUIDO, VITORIA, Partida
 from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
-from src.chefes import TOTAL_ANDARES
+from src.tela_conclusao import TelaConclusao
+from src.telas import TelaAndarConcluido, TelaDuelo, TelaExploracao, TelaGameOver
 
-
+# Telas do jogo.
 MENU = "MENU"
 EXPLORACAO = "EXPLORACAO"
 JOGO = "JOGO"
+ANDAR_FEITO = "ANDAR_FEITO"
 GAME_OVER = "GAME_OVER"
-
-ANDAR_INICIAL = 1
+CONCLUSAO = "CONCLUSAO"
 
 BOTAO = pygame.Rect(0, 0, 260, 70)
 BOTAO.center = (1090, 640)
@@ -41,15 +41,12 @@ def menu_inicial():
     relogio = pygame.time.Clock()
     fonte = pygame.font.Font(None, 48)
 
-    fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)    # Exterminador reduzido (256x320 -> 154x192) para não cobrir a porta da mansão.
+    fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)
     jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), ALTURA_JOGADOR_MEDIA)
 
     estado = MENU
-    tela_exploracao = None
-    tela_duelo = None
-    tela_gameover = None
-    duelo = None
-    andar = ANDAR_INICIAL
+    partida = None      # andar atual, estrelas e pontuação (progressao.py)
+    atual = None        # a tela que está aparecendo (exploração, duelo, estrelas, game over ou vitória)
     dt = 0.0
     rodando = True
     while rodando:
@@ -63,64 +60,53 @@ def menu_inicial():
                           and BOTAO.collidepoint(evento.pos))
                 apertou_enter = evento.type == pygame.KEYDOWN and evento.key in (pygame.K_RETURN, pygame.K_KP_ENTER)
                 if clicou or apertou_enter:
-                    andar = ANDAR_INICIAL
-                    tela_exploracao = TelaExploracao(andar)  # S0: o Exterminador caminha até o chefe
+                    partida = Partida()
+                    atual = TelaExploracao(partida.andar_atual)  # S0: o Exterminador caminha até o chefe
                     estado = EXPLORACAO
-            elif estado == EXPLORACAO:
-                tela_exploracao.tratar_evento(evento)
-            elif estado == JOGO:
-                tela_duelo.tratar_evento(evento)
-            elif estado == GAME_OVER:
-                tela_gameover.tratar_evento(evento)
+            else:
+                atual.tratar_evento(evento)
 
-        if estado == EXPLORACAO:
-            tela_exploracao.atualizar(dt)
-            if tela_exploracao.concluida:
-                # Encontro com o chefe: o Duelo começa em S1 (ENCONTRO_CHEFE).
-                duelo = Duelo(andar)
-                tela_duelo = TelaDuelo(duelo)                
-                tela_exploracao = None
+        if estado != MENU:
+            atual.atualizar(dt)
+
+        if estado == EXPLORACAO and atual.concluida:
+            # Encontro com o chefe: o Duelo começa em S1 (ENCONTRO_CHEFE) com os 3 corações cheios.
+            atual = TelaDuelo(partida.iniciar_duelo())
+            estado = JOGO
+        elif estado == JOGO and atual.concluida:
+            if partida.concluir_duelo() == ANDAR_CONCLUIDO:   # venceu o chefe: mostra as estrelas
+                atual = TelaAndarConcluido(partida.andar_atual, partida.ultimas_estrelas,
+                                           partida.melhor_do_andar, partida.pode_repetir)
+                estado = ANDAR_FEITO
+            else:                                              # os corações acabaram
+                atual = TelaGameOver()
+                estado = GAME_OVER
+        elif estado == ANDAR_FEITO and atual.concluida:
+            if atual.acao == "repetir":                        # outra chance contra o mesmo chefe
+                atual = TelaDuelo(partida.iniciar_duelo())
                 estado = JOGO
-        elif estado == JOGO:
-            tela_duelo.atualizar(dt)
-            if tela_duelo.concluida:
-                if duelo.game_over:
-                    tela_gameover = TelaGameOver()
-                    estado = GAME_OVER
-                    tela_duelo = None
-                elif andar < TOTAL_ANDARES:
-                    andar += 1
-                    tela_exploracao = TelaExploracao(andar)   # sobe a escada e anda pelo corredor
-                    tela_duelo = None
-                    estado = EXPLORACAO
-                else:
-                    estado = MENU   # provisório: zerou o jogo (ainda não existe tela de vitória)
-                    tela_duelo = None
-        elif estado == GAME_OVER:
-            tela_gameover.atualizar(dt)
-            if tela_gameover.concluida:
-                if tela_gameover.acao == "tentar_novamente":
-                    duelo = Duelo(duelo.andar)
-                    tela_duelo = TelaDuelo(duelo)
-                    estado = JOGO
-                else:
-                    estado = MENU
-                tela_gameover = None
+            elif partida.avancar() == VITORIA:                 # derrotou o último chefe
+                atual = TelaConclusao(partida.pontuacao_final)
+                estado = CONCLUSAO
+            else:                                              # sobe para o próximo andar
+                atual = TelaExploracao(partida.andar_atual)
+                estado = EXPLORACAO
+        elif estado in (GAME_OVER, CONCLUSAO) and atual.concluida:
+            estado = MENU
+            atual = None
+            partida = None
 
         if estado == MENU:
             desenhar_menu(tela, fundo, jogador, fonte, pygame.mouse.get_pos())
-        elif estado == EXPLORACAO:
-            tela_exploracao.desenhar(tela)
-        elif estado == GAME_OVER:
-            tela_gameover.desenhar(tela)
         else:
-            tela_duelo.desenhar(tela)
+            atual.desenhar(tela)
 
         pygame.display.flip()
         dt = min(relogio.tick(FPS) / 1000, 0.1)  # segundos desde o quadro anterior (limitado)
 
     pygame.quit()
     sys.exit()
+
 
 if __name__ == "__main__":
     menu_inicial()
