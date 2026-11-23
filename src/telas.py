@@ -5,14 +5,15 @@ import math
 import pygame
 
 from config.config import (
-    ALTURA_JOGADOR_MEDIA, COR_ACERTO, COR_BORDA, COR_CORACAO, COR_DANO, COR_ERRO, COR_GAME_OVER, COR_PAINEL,
-    COR_SELECIONADA, COR_TEXTO, HEIGHT, WIDTH,
+    ALTURA_JOGADOR_MEDIA, COR_ACERTO, COR_BORDA, COR_CORACAO, COR_DANO, COR_ERRO, COR_GAME_OVER, COR_OURO,
+    COR_PAINEL, COR_SELECIONADA, COR_TEXTO, HEIGHT, WIDTH,
 )
 from src.recursos import (
     CHEFES_SPRITE, FUNDOS_ANDAR, FUNDOS_EXPLORACAO, JOGADOR_COSTAS_SPRITE, JOGADOR_ESQUERDA_SPRITE, JOGADOR_SPRITE,
-    carregar_fonte, carregar_imagem, redimensionar_por_altura,
+    SOM_ACERTO, SOM_ERRO, SOM_GAME_OVER, SOM_PASSOS, SOM_VITORIA,
+    carregar_fonte, carregar_imagem, redimensionar_por_altura, tocar_som,
 )
-from src.chefes import CHEFES
+from src.chefes import CHEFES, CHEFES_INFOS
 
 # Fases do duelo na tela:
 #   PERGUNTA  -> o jogador escolhe a alternativa
@@ -27,7 +28,6 @@ FASE_RESULTADO = "RESULTADO"
 ENTER = (pygame.K_RETURN, pygame.K_KP_ENTER)
 
 # --- Combate ---
-TAMANHO_JOGADOR = (192, 240)
 TAMANHO_CHEFE = (288, 336)
 ALTURA_JOGADOR = ALTURA_JOGADOR_MEDIA  # altura do Exterminador no combate (o Lobisomem tem ~332 px)
 CHEFES_ESPELHADOS = {4}  # chefes cuja arte olha para a direita: viram para encarar o Exterminador
@@ -81,6 +81,11 @@ ESCALA_EXPLORADOR = 0.9      # multiplica todas as escalas das cenas (diminua pa
 FADE_TEMPO = 0.4
 PASSOS_POR_SEGUNDO = 3.2  # cada passo = um balanço do corpo
 
+# --- Andar concluído (estrelas) ---
+ANDAR_CONCLUIDO_ESPERA = 0.5            # tempo até aceitar teclas, para não pular sem querer
+PAINEL_ESTRELAS = pygame.Rect(340, 100, 600, 520)
+ROTULOS_ACAO = {"repetir": "Tentar de novo para ganhar mais estrelas", "continuar": "Continuar"}
+
 # --- Game Over ---
 GAME_OVER_ATRASO = 2.0  # a mensagem para recomeçar aparece depois deste tempo
 
@@ -121,6 +126,22 @@ def desenhar_coracao(superficie, centro, tamanho, cor):
         pygame.draw.polygon(superficie, cor_atual, [
             (cx - t // 2 + 1, cy - r // 2 + 2), (cx + t // 2 - 1, cy - r // 2 + 2), (cx, cy + t // 2),
         ])
+
+
+def desenhar_estrela(superficie, centro, raio, preenchida):
+    """Estrela de 5 pontas: dourada se ganhou, só o contorno apagado se não ganhou."""
+    cx, cy = centro
+    pontos = []
+    for i in range(10):
+        angulo = -math.pi / 2 + i * math.pi / 5
+        r = raio if i % 2 == 0 else raio * 0.42
+        pontos.append((cx + r * math.cos(angulo), cy + r * math.sin(angulo)))
+    if preenchida:
+        pygame.draw.polygon(superficie, COR_OURO, pontos)
+        pygame.draw.polygon(superficie, COR_BORDA, pontos, 3)
+    else:
+        pygame.draw.polygon(superficie, (70, 62, 90), pontos)
+        pygame.draw.polygon(superficie, (120, 110, 140), pontos, 3)
 
 
 def _texto(superficie, texto, fonte, cor, pos, centro=False, direita=False):
@@ -202,6 +223,7 @@ class TelaExploracao:
         self.cenas = CENAS_POR_ANDAR[andar]
         self.tempo_andando = 0.0  # só conta enquanto anda, para o ritmo dos passos
         self.andando = False
+        self.passos_dados = 0     # escolhe qual variação do som de passo toca
         self.concluida = False
         self.fundos = [carregar_imagem(nome, (WIDTH, HEIGHT)) for nome in FUNDOS_EXPLORACAO[andar]]
         self.sprite = _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_COSTAS_SPRITE), ALTURA_REF_EXPLORADOR)
@@ -287,9 +309,15 @@ class TelaExploracao:
         self.y = max(float(y_fim), min(float(y_ini), self.y + dy * velocidade_frente * dt))
         self.x = self._limitar_x(self.x + dx * velocidade_lado * dt)
 
+        andava = self.andando
         self.andando = bool(dx or dy)
         if self.andando:
+            passos_antes = int(self.tempo_andando * PASSOS_POR_SEGUNDO)
             self.tempo_andando += dt
+            # um som de passo a cada passo do balanço do desenho (o primeiro toca ao começar a andar)
+            if not andava or int(self.tempo_andando * PASSOS_POR_SEGUNDO) > passos_antes:
+                tocar_som(SOM_PASSOS[self.passos_dados % len(SOM_PASSOS)])
+                self.passos_dados += 1
         if self.y <= y_fim:
             self.fade_saida = 0.0
 
@@ -365,7 +393,49 @@ class TelaDuelo:
         self.vidas_chefe_ex = self.duelo.vidas_chefe
 
     # --- entrada e tempo ---------------------------------------------------------
+    def _confirmar(self):
+        """Confirma a alternativa selecionada. O dano é decidido em regras.py."""
+        self.escolhida = self.selecionada
+        acertou = self.duelo.responder(self.escolhida)
+        tocar_som(SOM_ACERTO if acertou else SOM_ERRO)
+        self._ir_para(FASE_PISCADA)
+
+    def _continuar(self):
+        """Na tela de resultado: segue para a próxima pergunta ou encerra o duelo."""
+        if self.tempo_fase < ESPERA_MINIMA:
+            return
+        if self.duelo.terminou:
+            self.concluida = True
+        else:
+            self.duelo.proxima_pergunta()
+            self.selecionada = 0
+            self.escolhida = None
+            self._ir_para(FASE_PERGUNTA)
+
+    def _opcao_sob(self, pos):
+        """Índice da alternativa que está sob o mouse (ou None)."""
+        for i, rect in enumerate(self._retangulos_opcoes(self.duelo.pergunta_atual)):
+            if rect.move(PAINEL.x, PAINEL.y).collidepoint(pos):
+                return i
+        return None
+
     def tratar_evento(self, evento):
+        # Mouse (além do teclado): passar por cima seleciona, clicar escolhe e confirma.
+        if evento.type == pygame.MOUSEMOTION and self.fase == FASE_PERGUNTA:
+            i = self._opcao_sob(evento.pos)
+            if i is not None:
+                self.selecionada = i
+            return
+        if evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+            if self.fase == FASE_PERGUNTA:
+                i = self._opcao_sob(evento.pos)
+                if i is not None:
+                    self.selecionada = i
+                    self._confirmar()
+            elif self.fase == FASE_RESULTADO:
+                self._continuar()
+            return
+
         if evento.type != pygame.KEYDOWN:
             return
         if self.fase == FASE_PERGUNTA:
@@ -377,17 +447,9 @@ class TelaDuelo:
             elif pygame.K_1 <= evento.key <= pygame.K_4 and evento.key - pygame.K_1 < n:
                 self.selecionada = evento.key - pygame.K_1
             elif evento.key in ENTER:
-                self.escolhida = self.selecionada
-                self.duelo.responder(self.escolhida)  # o dano é decidido em regras.py
-                self._ir_para(FASE_PISCADA)
-        elif self.fase == FASE_RESULTADO and evento.key in ENTER and self.tempo_fase >= ESPERA_MINIMA:
-            if self.duelo.terminou:
-                self.concluida = True
-            else:
-                self.duelo.proxima_pergunta()
-                self.selecionada = 0
-                self.escolhida = None
-                self._ir_para(FASE_PERGUNTA)
+                self._confirmar()
+        elif self.fase == FASE_RESULTADO and evento.key in ENTER:
+            self._continuar()
 
     def atualizar(self, dt):
         self.tempo_fase += dt
@@ -487,6 +549,14 @@ class TelaDuelo:
             return COR_ERRO, COR_TEXTO
         return COR_PAINEL, COR_BORDA
 
+    def _retangulos_opcoes(self, pergunta):
+        """Retângulos das alternativas, relativos ao painel. O mesmo cálculo serve para desenhar e para o mouse."""
+        largura = PAINEL.width - 2 * PAINEL_MARGEM
+        linhas = quebrar_texto(pergunta["enunciado"], self.fonte_enunciado, largura)
+        topo = 18 + min(len(linhas), 5) * 30 + 16
+        return [pygame.Rect(PAINEL_MARGEM, topo + i * OPCAO_ESPACO, largura, OPCAO_ALTURA)
+                for i in range(len(pergunta["opcoes"]))]
+
     def _deslocamento_painel(self):
         """Quanto o painel está deslocado para cima: 0 = no lugar; negativo = saindo da tela."""
         if self.fase != FASE_ATAQUE:
@@ -514,16 +584,16 @@ class TelaDuelo:
 
         pergunta = self.duelo.pergunta_atual
         linhas = quebrar_texto(pergunta["enunciado"], self.fonte_enunciado, largura)
-        y = _linhas(buf, linhas, self.fonte_enunciado, COR_TEXTO, x, 18, 30, 5) + 16
+        _linhas(buf, linhas, self.fonte_enunciado, COR_TEXTO, x, 18, 30, 5)
 
-        for i, opcao in enumerate(pergunta["opcoes"]):
-            rect = pygame.Rect(x, y + i * OPCAO_ESPACO, largura, OPCAO_ALTURA)
+        retangulos = self._retangulos_opcoes(pergunta)
+        for i, (opcao, rect) in enumerate(zip(pergunta["opcoes"], retangulos)):
             fundo, borda = self._cor_da_opcao(i, pergunta)
             pygame.draw.rect(buf, fundo, rect, border_radius=8)
             pygame.draw.rect(buf, borda, rect, width=2, border_radius=8)
             _texto(buf, f"{i + 1}  {opcao}", self.fonte_opcao, COR_TEXTO,
                    (rect.x + 14, rect.centery - self.fonte_opcao.get_height() // 2))
-        y += len(pergunta["opcoes"]) * OPCAO_ESPACO + 10
+        y = retangulos[-1].y + OPCAO_ESPACO + 10
 
         if self.fase == FASE_RESULTADO:
             self._desenhar_resultado(buf, x, y, largura)
@@ -550,9 +620,105 @@ class TelaDuelo:
                    (PAINEL.width // 2, PAINEL.height - 22), centro=True)
 
 
+class TelaAndarConcluido:
+    """Depois de vencer um chefe: mostra as estrelas do duelo (1 a 3, pelos corações que sobraram).
+    Se ainda dá para ganhar mais estrelas, oferece uma nova chance no mesmo andar.
+
+    Teclado: ↑/↓ (ou ←/→) escolhem, 1 e 2 também, Enter confirma. Mouse: passar por cima destaca e
+    clicar confirma. Ao terminar, `acao` é "repetir" ou "continuar"."""
+
+    def __init__(self, andar, estrelas, melhor, pode_repetir):
+        self.andar = andar
+        self.estrelas = estrelas
+        self.melhor = melhor
+        self.acoes = ["repetir", "continuar"] if pode_repetir else ["continuar"]
+        self.selecionada = len(self.acoes) - 1   # começa em "Continuar", para não repetir sem querer
+        self.concluida = False
+        self.acao = None
+        self.tempo = 0.0
+        self.fala = CHEFES_INFOS.get(andar, {}).get("fala_derrota", "")
+
+        self.fundo = carregar_imagem(FUNDOS_ANDAR.get(andar), (WIDTH, HEIGHT)).copy()
+        escuro = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
+        escuro.fill((0, 0, 0, 150))
+        self.fundo.blit(escuro, (0, 0))
+        self.fonte_titulo = carregar_fonte(38, negrito=True)
+        self.fonte_texto = carregar_fonte(22)
+        self.fonte_estrelas = carregar_fonte(28, negrito=True)
+        self.fonte_opcao = carregar_fonte(22)
+        tocar_som(SOM_VITORIA)
+
+    def _retangulo_opcao(self, i):
+        rect = pygame.Rect(0, 0, 500, 46)
+        rect.center = (PAINEL_ESTRELAS.centerx, PAINEL_ESTRELAS.bottom - 100 + i * 56 - (len(self.acoes) - 1) * 28)
+        return rect
+
+    def _opcao_sob(self, pos):
+        for i in range(len(self.acoes)):
+            if self._retangulo_opcao(i).collidepoint(pos):
+                return i
+        return None
+
+    def _confirmar(self):
+        self.acao = self.acoes[self.selecionada]
+        self.concluida = True
+
+    def tratar_evento(self, evento):
+        if self.tempo < ANDAR_CONCLUIDO_ESPERA or self.concluida:
+            return
+        n = len(self.acoes)
+        if evento.type == pygame.MOUSEMOTION:
+            i = self._opcao_sob(evento.pos)
+            if i is not None:
+                self.selecionada = i
+        elif evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1:
+            i = self._opcao_sob(evento.pos)
+            if i is not None:
+                self.selecionada = i
+                self._confirmar()
+        elif evento.type == pygame.KEYDOWN:
+            if evento.key in (pygame.K_UP, pygame.K_LEFT):
+                self.selecionada = (self.selecionada - 1) % n
+            elif evento.key in (pygame.K_DOWN, pygame.K_RIGHT):
+                self.selecionada = (self.selecionada + 1) % n
+            elif pygame.K_1 <= evento.key <= pygame.K_2 and evento.key - pygame.K_1 < n:
+                self.selecionada = evento.key - pygame.K_1
+            elif evento.key in ENTER:
+                self._confirmar()
+
+    def atualizar(self, dt):
+        self.tempo += dt
+
+    def desenhar(self, tela):
+        tela.blit(self.fundo, (0, 0))
+        painel = PAINEL_ESTRELAS
+        pygame.draw.rect(tela, COR_PAINEL, painel, border_radius=14)
+        pygame.draw.rect(tela, COR_OURO, painel, width=3, border_radius=14)
+        meio = painel.centerx
+
+        _texto(tela, f"ANDAR {self.andar} CONCLUÍDO!", self.fonte_titulo, COR_OURO, (meio, painel.y + 52), centro=True)
+        y = painel.y + 100
+        for linha in quebrar_texto(self.fala, self.fonte_texto, painel.width - 80)[:3]:
+            _texto(tela, linha, self.fonte_texto, COR_TEXTO, (meio, y), centro=True)
+            y += 30
+
+        for i in range(3):  # as estrelas ganhas ficam douradas
+            desenhar_estrela(tela, (meio + (i - 1) * 130, painel.y + 232), 48, i < self.estrelas)
+        _texto(tela, f"{self.estrelas} de 3 estrelas", self.fonte_estrelas, COR_TEXTO, (meio, painel.y + 308), centro=True)
+        _texto(tela, f"Melhor deste andar: {self.melhor} de 3", self.fonte_texto, COR_TEXTO,
+               (meio, painel.y + 346), centro=True)
+
+        for i, acao in enumerate(self.acoes):
+            rect = self._retangulo_opcao(i)
+            ativa = i == self.selecionada
+            pygame.draw.rect(tela, COR_SELECIONADA if ativa else COR_PAINEL, rect, border_radius=8)
+            pygame.draw.rect(tela, COR_TEXTO if ativa else COR_BORDA, rect, width=2, border_radius=8)
+            _texto(tela, f"{i + 1}  {ROTULOS_ACAO[acao]}", self.fonte_opcao, COR_TEXTO, rect.center, centro=True)
+
+
 class TelaGameOver:
     """Tela preta com "GAME OVER" em vermelho. Depois de 2 segundos aparece, no canto inferior
-    direito, "Aperte enter para recomeçar". Só o Enter (depois da mensagem) vale e leva ao menu."""
+    direito, "Aperte enter para recomeçar". Só o Enter (ou um clique) depois da mensagem vale e leva ao menu."""
 
     def __init__(self):
         self.concluida = False
@@ -560,13 +726,16 @@ class TelaGameOver:
         self.tempo = 0.0
         self.fonte_titulo = carregar_fonte(130, negrito=True)
         self.fonte_mensagem = carregar_fonte(28)
+        tocar_som(SOM_GAME_OVER)
 
     @property
     def mensagem_visivel(self):
         return self.tempo >= GAME_OVER_ATRASO
 
     def tratar_evento(self, evento):
-        if evento.type == pygame.KEYDOWN and evento.key in ENTER and self.mensagem_visivel:
+        apertou = evento.type == pygame.KEYDOWN and evento.key in ENTER
+        clicou = evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1
+        if (apertou or clicou) and self.mensagem_visivel:
             self.acao = "menu"
             self.concluida = True
 

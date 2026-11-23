@@ -115,7 +115,7 @@ def test_validar_pergunta_exige_campos(campo):
 def test_carregar_perguntas_avisa_se_faltar_pergunta(tmp_path, monkeypatch):
     (tmp_path / "andar_1.json").write_text(json.dumps([PERGUNTA_OK]), encoding="utf-8")
     monkeypatch.setattr("src.questoes.PERGUNTAS_DIR", tmp_path)
-    with pytest.warns(UserWarning, match="Andar 1"):
+    with pytest.warns(UserWarning, match="(?i)andar 1"):
         assert len(carregar_perguntas(1)) == 1
 
 

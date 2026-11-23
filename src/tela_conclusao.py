@@ -1,11 +1,10 @@
 import math
 import pygame
 
-from config.config import COR_PAINEL, COR_TEXTO, HEIGHT, RESOLUTION, WIDTH
-from src.recursos import JOGADOR_SPRITE, carregar_fonte, carregar_imagem
+from config.config import COR_OURO, COR_PAINEL, COR_TEXTO, HEIGHT, WIDTH
+from src.progressao import PONTUACAO_MAXIMA
+from src.recursos import JOGADOR_SPRITE, SOM_VITORIA, carregar_fonte, carregar_imagem, tocar_som
 from src.telas import ENTER, _sprite_com_pivo_nos_pes, _suave
-
-COR_OURO = (255, 214, 102)
 
 FUNDO = "fundo_entrada_mansao.png"
 TITULO = "VOCÊ ESCAPOU DA MANSÃO!"
@@ -43,14 +42,19 @@ def _centralizado(superficie, texto, fonte, cor, x, y_topo, sombra=False):
 
 
 class TelaConclusao:
-    def __init__(self):
+    """Tela de vitória: o Exterminador sai da mansão, aparecem o título, a pontuação final
+    (soma das estrelas dos 4 andares) e os integrantes. Enter ou clique voltam ao menu."""
+
+    def __init__(self, pontuacao=None):
         self.concluida = False
         self.acao = None
         self.tempo = 0.0
+        self.pontuacao = pontuacao
         self.fonte_mensagem = carregar_fonte(28)
         self.fundo = self._montar_fundo()
         self.sprite = _sprite_com_pivo_nos_pes(carregar_imagem(JOGADOR_SPRITE), ALTURA_EXPLORADOR)
-        self.camada_texto = self._montar_camada_texto()
+        self.camada_texto = self._montar_camada_texto(pontuacao)
+        tocar_som(SOM_VITORIA)
 
     @staticmethod
     def _montar_fundo():
@@ -61,7 +65,7 @@ class TelaConclusao:
         return fundo
 
     @staticmethod
-    def _montar_camada_texto():
+    def _montar_camada_texto(pontuacao=None):
         camada = pygame.Surface((WIDTH, HEIGHT), pygame.SRCALPHA)
 
         for y in range(ALTURA_FAIXA):
@@ -70,6 +74,9 @@ class TelaConclusao:
 
         _centralizado(camada, TITULO, carregar_fonte(58, negrito=True), COR_OURO, WIDTH // 2, 26, sombra=True)
         _centralizado(camada, SUBTITULO, carregar_fonte(26), COR_TEXTO, WIDTH // 2, 100, sombra=True)
+        if pontuacao is not None:
+            _centralizado(camada, f"Pontuação final: {pontuacao} de {PONTUACAO_MAXIMA} estrelas",
+                          carregar_fonte(30, negrito=True), COR_OURO, WIDTH // 2, 140, sombra=True)
 
         pygame.draw.rect(camada, COR_PAINEL + (232,), PAINEL, border_radius=14)
         pygame.draw.rect(camada, COR_OURO, PAINEL, width=3, border_radius=14)
@@ -107,7 +114,9 @@ class TelaConclusao:
         return X_CAMINHO, y, escala
 
     def tratar_evento(self, evento):
-        if evento.type == pygame.KEYDOWN and evento.key in ENTER and self.mensagem_visivel:
+        apertou = evento.type == pygame.KEYDOWN and evento.key in ENTER
+        clicou = evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1
+        if (apertou or clicou) and self.mensagem_visivel:
             self.acao = "menu"
             self.concluida = True
 
@@ -142,28 +151,3 @@ class TelaConclusao:
             tela.blit(escuro, escuro.get_rect(bottomright=(WIDTH - 30, HEIGHT - 25)))
             imagem = self.fonte_mensagem.render(texto, True, COR_TEXTO)
             tela.blit(imagem, imagem.get_rect(bottomright=(WIDTH - 32, HEIGHT - 28)))
-
-
-def visualizar():
-    pygame.init()
-    tela = pygame.display.set_mode(RESOLUTION)
-    pygame.display.set_caption("Tela de conclusão")
-    relogio = pygame.time.Clock()
-    conclusao = TelaConclusao()
-    rodando = True
-    while rodando:
-        for evento in pygame.event.get():
-            if evento.type == pygame.QUIT or (evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE):
-                rodando = False
-            else:
-                conclusao.tratar_evento(evento)
-        conclusao.atualizar(min(relogio.tick(60) / 1000, 0.1))
-        if conclusao.concluida:
-            conclusao = TelaConclusao()
-        conclusao.desenhar(tela)
-        pygame.display.flip()
-    pygame.quit()
-
-
-if __name__ == "__main__":
-    visualizar()
