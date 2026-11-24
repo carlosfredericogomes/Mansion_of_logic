@@ -15,7 +15,7 @@ import main
 from src import recursos
 from src.chefes import CHEFES
 from src.telas import (
-    FASE_PERGUNTA, FASE_RESULTADO, TelaAndarConcluido, TelaDuelo, TelaExploracao, TelaGameOver,
+    FASE_PERGUNTA, FASE_RESULTADO, TelaAndarConcluido, TelaBau, TelaDuelo, TelaExploracao, TelaGameOver,
 )
 from src.tela_conclusao import TelaConclusao
 
@@ -74,7 +74,7 @@ def jogar_pelo_main(monkeypatch, planos, escolher_acao_do_andar=lambda tela: [])
                 acao = plano[n] if n < len(plano) else "C"
                 p = tela.duelo.pergunta_atual
                 escolha = p["correta"] if acao == "C" else (p["correta"] + 1) % len(p["opcoes"])
-                return [tecla(pygame.K_1 + escolha), ENTER]
+                return [tecla(pygame.K_1 + escolha), ENTER, ENTER]   # escolhe, Enter, e Enter em "Confirmar"
             if tela.fase == FASE_RESULTADO:
                 return [ENTER]
         return []
@@ -140,3 +140,104 @@ def test_game_over_logo_no_andar_1(monkeypatch):
     telas_vistas = jogar_pelo_main(monkeypatch, planos=[list("EEE")])
     assert tipos(telas_vistas) == ["TelaExploracao", "TelaDuelo", "TelaGameOver"]
     assert telas_vistas[1].duelo.andar == 1
+
+
+def test_esc_pausa_congela_o_jogo_e_voltar_ao_menu_abandona_a_partida(monkeypatch):
+    exploracoes = []
+
+    class Registrada(main.TelaExploracao):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            exploracoes.append(self)
+
+    monkeypatch.setattr(main, "TelaExploracao", Registrada)
+    monkeypatch.setattr(pygame.time, "Clock", RelogioFalso)
+    monkeypatch.setattr(pygame.key, "get_pressed", lambda: defaultdict(bool, {pygame.K_w: True}))
+    roteiro = {3: [ENTER], 8: [tecla(pygame.K_ESCAPE)], 16: [tecla(pygame.K_ESCAPE)], 20: [tecla(pygame.K_ESCAPE)],
+               22: [tecla(pygame.K_3)], 26: [SAIR]}
+    marcas = {}
+    quadro = {"n": 0}
+
+    def eventos():
+        quadro["n"] += 1
+        if exploracoes:
+            marcas[quadro["n"]] = exploracoes[0].tempo_cena
+        return roteiro.get(quadro["n"], [])
+
+    monkeypatch.setattr(pygame.event, "get", eventos)
+    try:
+        main.menu_inicial()
+    except SystemExit:
+        pass
+    finally:
+        recursos._cache_fontes.clear()
+        recursos._cache_imagens.clear()
+        recursos._cache_sons.clear()
+        recursos._mixer_ok = None
+
+    assert marcas[9] == marcas[15]                                   # pausado: o tempo da cena não anda
+    assert marcas[17] > marcas[15]                                   # ESC de novo: o jogo volta a andar
+    assert marcas[21] == marcas[25]                                  # pausou de novo e escolheu "voltar ao menu"
+    assert len(exploracoes) == 1
+
+
+def test_baus_dao_4_e_5_coracoes_nos_duelos_dos_andares_3_e_4(monkeypatch):
+    """O robô anda até o baú de cada corredor (andares 3 e 4), abre e acerta a pergunta."""
+    telas_vistas = []
+
+    def registrar(classe):
+        class Registrada(classe):
+            def __init__(self, *args, **kwargs):
+                super().__init__(*args, **kwargs)
+                telas_vistas.append(self)
+        Registrada.__name__ = classe.__name__
+        return Registrada
+
+    for nome in ("TelaExploracao", "TelaBau", "TelaDuelo", "TelaAndarConcluido", "TelaGameOver", "TelaConclusao"):
+        monkeypatch.setattr(main, nome, registrar(getattr(main, nome)))
+    monkeypatch.setattr(pygame.time, "Clock", RelogioFalso)
+    monkeypatch.setattr(pygame.key, "get_pressed", lambda: defaultdict(bool, {pygame.K_w: True}))
+    estado = {"quadros": 0, "n": defaultdict(int)}
+
+    def eventos():
+        estado["quadros"] += 1
+        assert estado["quadros"] < 20000, "o jogo travou"
+        if not telas_vistas:
+            return [ENTER] if estado["quadros"] == 3 else []
+        tela = telas_vistas[-1]
+        if isinstance(tela, TelaExploracao):
+            if tela.com_bau and not tela.bau_aberto and tela.cena == 1:
+                tela.x, tela.y = 780.0, 566.0          # o robô "anda" até perto do baú
+                return [ENTER]
+            return []
+        if isinstance(tela, TelaBau):
+            if not tela.respondida:
+                return [tecla(pygame.K_1 + tela.pergunta["correta"]), ENTER, ENTER]   # escolhe, Enter e Enter em "Confirmar"
+            return [ENTER]
+        if isinstance(tela, (TelaGameOver, TelaConclusao)):
+            return [SAIR] if tela.concluida else [ENTER]
+        if isinstance(tela, TelaAndarConcluido):
+            return [ENTER]
+        if isinstance(tela, TelaDuelo) and not tela.concluida:
+            if tela.fase == FASE_PERGUNTA:
+                return [tecla(pygame.K_1 + tela.duelo.pergunta_atual["correta"]), ENTER, ENTER]
+            if tela.fase == FASE_RESULTADO:
+                return [ENTER]
+        return []
+
+    monkeypatch.setattr(pygame.event, "get", eventos)
+    try:
+        main.menu_inicial()
+    except SystemExit:
+        pass
+    finally:
+        recursos._cache_fontes.clear()
+        recursos._cache_imagens.clear()
+        recursos._cache_sons.clear()
+        recursos._mixer_ok = None
+
+    duelos = [t for t in telas_vistas if isinstance(t, TelaDuelo)]
+    assert [d.duelo.andar for d in duelos] == [1, 2, 3, 4]
+    assert [d.duelo.vidas_jogador for d in duelos] == [3, 3, 4, 5]
+    assert len([t for t in telas_vistas if isinstance(t, TelaBau)]) == 2
+    assert telas_vistas[-1].pontuacao == 12

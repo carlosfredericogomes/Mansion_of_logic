@@ -169,3 +169,68 @@ def test_nao_conclui_duelo_que_nao_terminou():
 
 def test_bancos_e_chefes_estao_coerentes():
     assert verificar_relacao_perguntas_chefes() == []
+
+
+# --- Baús da exploração ---
+
+def _ir_para_o_andar(partida, andar):
+    partida.andar_atual = andar
+    return partida
+
+
+def test_so_as_exploracoes_dos_andares_3_e_4_tem_bau():
+    p = Partida()
+    assert [_ir_para_o_andar(p, a).andar_tem_bau for a in (1, 2, 3, 4)] == [False, False, True, True]
+
+
+def test_acertar_o_bau_da_um_coracao_e_o_duelo_comeca_com_4():
+    p = _ir_para_o_andar(Partida(), 3)
+    p.abrir_bau(acertou=True)
+    assert p.vidas_extras == 1 and not p.andar_tem_bau
+    assert p.iniciar_duelo().vidas_jogador == 4
+
+
+def test_errar_o_bau_nao_custa_nada_nem_da_coracao():
+    p = _ir_para_o_andar(Partida(), 3)
+    p.abrir_bau(acertou=False)
+    assert p.vidas_extras == 0 and not p.andar_tem_bau
+    assert p.iniciar_duelo().vidas_jogador == 3
+
+
+def test_dois_baus_somam_5_coracoes_no_ultimo_andar():
+    p = _ir_para_o_andar(Partida(), 3)
+    p.abrir_bau(True)
+    _ir_para_o_andar(p, 4).abrir_bau(True)
+    assert p.vidas_iniciais == 5 and p.iniciar_duelo().vidas_jogador == 5
+
+
+def test_estrelas_continuam_no_maximo_3_com_mais_de_3_coracoes():
+    assert estrelas_por_vidas(5) == 3 and estrelas_por_vidas(4) == 3
+
+
+def test_game_over_perde_os_coracoes_dos_baus_e_reabre_os_baus():
+    p = _ir_para_o_andar(Partida(), 3)
+    p.abrir_bau(True)
+    p.iniciar_duelo()
+    for _ in range(p.vidas_iniciais):
+        p.duelo.responder((p.duelo.pergunta_atual["correta"] + 1) % len(p.duelo.pergunta_atual["opcoes"]))
+        if not p.duelo.terminou:
+            p.duelo.proxima_pergunta()
+    assert p.concluir_duelo() == GAME_OVER
+    assert p.vidas_extras == 0 and p.andar_atual == 1 and not p.baus_abertos
+
+
+def test_pergunta_do_bau_respeita_o_nivel_do_andar_e_nao_repete():
+    p = _ir_para_o_andar(Partida(), 3)
+    sorteadas = [p.sortear_pergunta_bau() for _ in range(6)]       # há 6 fáceis/médias: nenhuma repete
+    assert {q["nivel"] for q in sorteadas} <= {1, 2}
+    assert len({q["id"] for q in sorteadas}) == 6
+    p4 = _ir_para_o_andar(Partida(), 4)
+    assert {p4.sortear_pergunta_bau()["nivel"] for _ in range(3)} <= {2, 3}
+    for q in sorteadas:
+        assert 0 <= q["correta"] < len(q["opcoes"])
+
+
+def test_pergunta_do_bau_com_banco_vazio_levanta_erro():
+    with pytest.raises(RuntimeError, match="vazio"):
+        _ir_para_o_andar(Partida(), 3).sortear_pergunta_bau(banco=[])

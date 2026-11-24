@@ -11,7 +11,7 @@ from src.regras import (
 
 
 def test_perguntas_validas():
-    quantidades = {1: 6, 2: 7, 3: 8, 4: 10}
+    quantidades = {1: 6, 2: 7, 3: 10, 4: 13}
     
     for andar, qtd in quantidades.items():
         perguntas = carregar_perguntas(andar)
@@ -273,14 +273,39 @@ def test_banco_acabando_antes_do_fim_avisa_com_mensagem_clara():
         duelo.proxima_pergunta()
 
 
-@pytest.mark.parametrize("andar, pior_caso", [(1, 5), (2, 6), (3, 7), (4, 9)])
-def test_banco_cobre_o_pior_caso_com_1_de_sobra(andar, pior_caso):
+@pytest.mark.parametrize("andar, pior_caso, sobra", [(1, 5, 1), (2, 6, 1), (3, 7, 3), (4, 9, 4)])
+def test_banco_cobre_o_pior_caso_com_folga(andar, pior_caso, sobra):
     banco = len(carregar_perguntas(andar))
     assert CHEFES[andar]["vidas"] + JOGADOR_VIDAS - 1 == pior_caso
     assert banco == CHEFES[andar]["perguntas"]
-    assert banco - pior_caso == 1
+    assert banco - pior_caso == sobra
     assert banco >= pior_caso
 
 
-def test_total_de_perguntas_e_31():
-    assert sum(len(carregar_perguntas(a)) for a in CHEFES) == 31
+@pytest.mark.parametrize("andar, vidas_com_baus", [(3, 4), (4, 5)])
+def test_banco_cobre_o_pior_caso_com_os_coracoes_dos_baus(andar, vidas_com_baus):
+    assert len(carregar_perguntas(andar)) >= CHEFES[andar]["vidas"] + vidas_com_baus - 1
+
+
+def test_total_de_perguntas_e_36():
+    assert sum(len(carregar_perguntas(a)) for a in CHEFES) == 36
+
+
+def test_banco_da_exploracao_tem_perguntas_faceis_medias_e_dificeis():
+    from src.questoes import carregar_perguntas_exploracao
+    todas = carregar_perguntas_exploracao()
+    assert {p["nivel"] for p in todas} == {1, 2, 3}
+    assert len({p["id"] for p in todas}) == len(todas)
+    ids_dos_andares = {p["id"] for a in CHEFES for p in carregar_perguntas(a)}
+    assert not ids_dos_andares & {p["id"] for p in todas}          # nenhuma repete as dos chefes
+    assert {p["nivel"] for p in carregar_perguntas_exploracao((1,))} == {1}
+    for p in todas:
+        assert len(set(p["opcoes"])) == len(p["opcoes"])
+
+
+def test_exploracao_com_nivel_invalido_levanta_erro(tmp_path, monkeypatch):
+    import src.questoes as questoes
+    (tmp_path / "exploracao.json").write_text(json.dumps([dict(PERGUNTA_OK, nivel=7)]), encoding="utf-8")
+    monkeypatch.setattr(questoes, "PERGUNTAS_DIR", tmp_path)
+    with pytest.raises(ValueError, match="nivel"):
+        questoes.carregar_perguntas_exploracao()
