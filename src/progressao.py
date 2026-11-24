@@ -3,8 +3,10 @@
 Quem decide o resultado de cada duelo é o Duelo (regras.py); aqui fica a conta da partida inteira:
 em que andar o jogador está, quantas estrelas ganhou em cada andar e o que acontece depois de um duelo."""
 from src.chefes import CHEFES, JOGADOR_VIDAS, TOTAL_ANDARES, obter_chefe, perguntas_necessarias
-from src.questoes import carregar_perguntas
-from src.regras import Duelo
+import random
+
+from src.questoes import carregar_perguntas, carregar_perguntas_exploracao
+from src.regras import Duelo, embaralhar_opcoes
 
 # O que acontece quando um duelo termina.
 ANDAR_CONCLUIDO = "ANDAR_CONCLUIDO"   # venceu o chefe: mostra as estrelas e oferece outra chance
@@ -14,6 +16,13 @@ GAME_OVER = "GAME_OVER"
 
 ESTRELAS_POR_ANDAR = 3                              # corações que sobram no fim do duelo = estrelas (1 a 3)
 PONTUACAO_MAXIMA = ESTRELAS_POR_ANDAR * TOTAL_ANDARES   # 12
+
+
+# Baús da exploração: respondendo certo, o jogador ganha 1 coração para os duelos seguintes
+# (3 + 1 + 1 = até 5 corações no último andar). Errar não custa nada: o baú só fica vazio.
+ANDARES_COM_BAU = (3, 4)          # explorações que levam aos andares 3 e 4
+VIDAS_POR_BAU = 1
+NIVEIS_DO_BAU = {3: (1, 2), 4: (2, 3)}   # baú do andar 3: perguntas fáceis e médias; do andar 4: médias e difíceis
 
 
 def estrelas_por_vidas(vidas_restantes):
@@ -29,6 +38,9 @@ class Partida:
         self.venceu_jogo = False
         self.estrelas = {}            # melhor resultado de cada andar: {andar: estrelas}
         self.ultimas_estrelas = 0     # estrelas do duelo que acabou de terminar
+        self.vidas_extras = 0         # corações ganhos nos baús (somam aos 3 de cada duelo)
+        self.baus_abertos = set()     # andares cujo baú já foi aberto
+        self._baus_usadas = set()     # ids das perguntas de baú já sorteadas (não repetem na partida)
 
     @property
     def chefe_atual(self):
@@ -44,6 +56,34 @@ class Partida:
         return self.melhor_do_andar < ESTRELAS_POR_ANDAR
 
     @property
+    def vidas_iniciais(self):
+        """Corações com que cada duelo começa: os 3 de sempre mais os ganhos nos baús."""
+        return JOGADOR_VIDAS + self.vidas_extras
+
+    @property
+    def andar_tem_bau(self):
+        """A exploração que leva ao andar atual tem um baú ainda fechado?"""
+        return self.andar_atual in ANDARES_COM_BAU and self.andar_atual not in self.baus_abertos
+
+    def sortear_pergunta_bau(self, banco=None):
+        """Sorteia a pergunta do baú deste andar (com as alternativas embaralhadas), sem repetir na partida."""
+        niveis = NIVEIS_DO_BAU.get(self.andar_atual, (1, 2, 3))
+        if banco is None:
+            banco = carregar_perguntas_exploracao(niveis)
+        candidatas = [p for p in banco if p["id"] not in self._baus_usadas] or list(banco)
+        if not candidatas:
+            raise RuntimeError("o banco de perguntas da exploração está vazio")
+        pergunta = random.choice(candidatas)
+        self._baus_usadas.add(pergunta["id"])
+        return embaralhar_opcoes(pergunta)
+
+    def abrir_bau(self, acertou):
+        """O baú deste andar foi aberto. Se acertou a pergunta, ganha 1 coração; errar não custa nada."""
+        self.baus_abertos.add(self.andar_atual)
+        if acertou:
+            self.vidas_extras += VIDAS_POR_BAU
+
+    @property
     def pontuacao_final(self):
         return sum(self.estrelas.values())
 
@@ -52,8 +92,8 @@ class Partida:
             raise RuntimeError("o jogo terminou: o último chefe foi derrotado")
         if self.duelo is not None and not self.duelo.terminou:
             raise RuntimeError("já existe um duelo em andamento")
-        # Todo duelo começa com os 3 corações cheios (inclusive uma nova chance no mesmo andar).
-        self.duelo = Duelo(self.andar_atual, JOGADOR_VIDAS, perguntas)
+        # Todo duelo começa com os corações cheios: 3, mais os ganhos nos baús (também na nova chance).
+        self.duelo = Duelo(self.andar_atual, self.vidas_iniciais, perguntas)
         return self.duelo
 
     def concluir_duelo(self):

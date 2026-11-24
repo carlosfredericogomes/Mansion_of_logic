@@ -116,5 +116,40 @@
     ],
     "correta": 2,
     "explicacao": "A coluna é F F V V: tem V e F, logo é contingência (equivale a ¬p)."
+  },
+  {
+    "id": 401,
+    "enunciado": "Traduza: \"Só passo se estudar.\" (p = passo, q = estudo)",
+    "opcoes": [
+      "q → p",
+      "p ↔ q",
+      "p → q",
+      "p ∧ q"
+    ],
+    "correta": 2,
+    "explicacao": "\"Só ... se\" indica condição necessária: passar exige estudar. Fica p → q."
+  },
+  {
+    "id": 402,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de (p ∧ q) → ¬p? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F F",
+      "F V V V",
+      "V V V F",
+      "F F F V"
+    ],
+    "correta": 1,
+    "explicacao": "Só há F quando p ∧ q é V (linha VV) e ¬p é F. Nas demais linhas o antecedente é F e a condicional é V."
+  },
+  {
+    "id": 403,
+    "enunciado": "Classifique (p ∨ q) ∧ ¬p ∧ ¬q.",
+    "opcoes": [
+      "Tautologia",
+      "Contingência",
+      "Contradição"
+    ],
+    "correta": 2,
+    "explicacao": "Para ser V, precisaria de p ∨ q verdadeira com p e q falsas ao mesmo tempo. Isso é impossível: é sempre F."
   }
 ]

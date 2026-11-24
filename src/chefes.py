@@ -3,8 +3,8 @@ JOGADOR_VIDAS = 3
 CHEFES = {
     1: {"nome": "Drácula",    "vidas": 3, "perguntas": 6},
     2: {"nome": "Frankenstein", "vidas": 4, "perguntas": 7},
-    3: {"nome": "Musashi",      "vidas": 5, "perguntas": 8},
-    4: {"nome": "Lobisomem",      "vidas": 7, "perguntas": 10},
+    3: {"nome": "Musashi",      "vidas": 5, "perguntas": 10},
+    4: {"nome": "Lobisomem",      "vidas": 7, "perguntas": 13},
 }
 
 CUSTO_ACERTO = 1   
@@ -40,7 +40,7 @@ CHEFES_INFOS = {
 
     3: { "nome": "Musashi",
         "vidas": 5,
-        "perguntas": 8,
+        "perguntas": 10,
         "dificuldade": 3,
         "rotulo_dificuldade": "Difícil",
         "tema": "Ou exclusivo, equivalências e classificação de fórmulas",
@@ -52,7 +52,7 @@ CHEFES_INFOS = {
 
     4: {"nome": "Lobisomem",
         "vidas": 7,
-        "perguntas": 10,
+        "perguntas": 13,
         "dificuldade": 4,
         "rotulo_dificuldade": "Muito difícil",
         "tema": "Fórmulas compostas, equivalências e regras de inferência",

@@ -43,3 +43,24 @@ def carregar_perguntas(andar):
     if esperado is not None and len(perguntas) < esperado:
         warnings.warn(f"andar {andar}: o banco tem {len(perguntas)} perguntas, mas o esperado é {esperado}",UserWarning, stacklevel=2)
     return perguntas
+
+
+NIVEIS_EXPLORACAO = (1, 2, 3)   # 1 fácil, 2 média, 3 difícil
+
+
+def carregar_perguntas_exploracao(niveis=NIVEIS_EXPLORACAO):
+    """Perguntas dos baús da exploração (perguntas/exploracao.json), só dos níveis pedidos.
+    Cada pergunta tem, além dos campos de sempre, `nivel` (1 fácil, 2 média, 3 difícil)."""
+    caminho = PERGUNTAS_DIR / "exploracao.json"
+    if not caminho.exists():
+        warnings.warn(f"banco de perguntas não encontrado: {caminho}", UserWarning, stacklevel=2)
+        return []
+    with open(caminho, encoding="utf-8") as f:
+        perguntas = json.load(f)
+    if not isinstance(perguntas, list):
+        raise ValueError(f"{caminho.name}: o arquivo deve conter uma lista de perguntas")
+    for posicao, pergunta in enumerate(perguntas, start=1):
+        validar_pergunta(pergunta, origem=f"{caminho.name}, pergunta {posicao}")
+        if pergunta.get("nivel") not in NIVEIS_EXPLORACAO:
+            raise ValueError(f"{caminho.name}, pergunta {posicao}: nivel deve ser 1, 2 ou 3")
+    return [p for p in perguntas if p["nivel"] in niveis]

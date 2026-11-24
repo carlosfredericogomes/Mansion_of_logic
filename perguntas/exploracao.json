@@ -1,0 +1,117 @@
+[
+  {
+    "id": 901,
+    "nivel": 1,
+    "enunciado": "Traduza: \"João estuda e Maria trabalha.\" (p = João estuda, q = Maria trabalha)",
+    "opcoes": [
+      "p ∨ q",
+      "p ∧ q",
+      "p → q",
+      "¬p ∧ q"
+    ],
+    "correta": 1,
+    "explicacao": "O \"e\" liga duas afirmações que valem juntas: conjunção (∧)."
+  },
+  {
+    "id": 902,
+    "nivel": 1,
+    "enunciado": "Qual é o valor de p ∨ q quando p é verdadeira e q é falsa?",
+    "opcoes": [
+      "Falso",
+      "Verdadeiro",
+      "Depende de q"
+    ],
+    "correta": 1,
+    "explicacao": "A disjunção (∨) é verdadeira quando pelo menos uma das partes é verdadeira. Aqui p é V."
+  },
+  {
+    "id": 903,
+    "nivel": 1,
+    "enunciado": "Qual símbolo representa a negação (\"não\")?",
+    "opcoes": [
+      "∧",
+      "∨",
+      "¬",
+      "→"
+    ],
+    "correta": 2,
+    "explicacao": "¬p lê-se \"não p\" e troca o valor lógico de p."
+  },
+  {
+    "id": 904,
+    "nivel": 2,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de ¬p ∨ q? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F F V",
+      "F V V V",
+      "V V V F",
+      "V F V V"
+    ],
+    "correta": 3,
+    "explicacao": "¬p ∨ q só é F quando ¬p é F (p = V) e q é F: linha VF. Nas outras é V."
+  },
+  {
+    "id": 905,
+    "nivel": 2,
+    "enunciado": "Traduza: \"Se não chover, vou à praia.\" (p = chove, q = vou à praia)",
+    "opcoes": [
+      "¬p → q",
+      "¬(p → q)",
+      "p → ¬q",
+      "¬p ∧ q"
+    ],
+    "correta": 0,
+    "explicacao": "\"Se não chover\" é o antecedente: ¬p. O consequente é q. Fica ¬p → q."
+  },
+  {
+    "id": 906,
+    "nivel": 2,
+    "enunciado": "Simplifique p ∧ (p ∨ q).",
+    "opcoes": [
+      "q",
+      "p ∨ q",
+      "p ∧ q",
+      "p"
+    ],
+    "correta": 3,
+    "explicacao": "É a Lei da Absorção: p ∧ (p ∨ q) ≡ p."
+  },
+  {
+    "id": 907,
+    "nivel": 3,
+    "enunciado": "Classifique (p → q) ∧ p ∧ ¬q.",
+    "opcoes": [
+      "Tautologia",
+      "Contradição",
+      "Contingência"
+    ],
+    "correta": 1,
+    "explicacao": "De p → q e p sai q; mas a fórmula também exige ¬q. q e ¬q juntos nunca são V: contradição."
+  },
+  {
+    "id": 908,
+    "nivel": 3,
+    "enunciado": "De p → q, q → r e p, qual é a conclusão que se deduz?",
+    "opcoes": [
+      "¬r",
+      "p ∧ ¬r",
+      "r",
+      "q → p"
+    ],
+    "correta": 2,
+    "explicacao": "De p e p → q sai q (modus ponens). De q e q → r sai r."
+  },
+  {
+    "id": 909,
+    "nivel": 3,
+    "enunciado": "Qual fórmula é equivalente à negação de p → q, ou seja, a ¬(p → q)?",
+    "opcoes": [
+      "¬p → ¬q",
+      "¬p ∧ q",
+      "¬p ∨ q",
+      "p ∧ ¬q"
+    ],
+    "correta": 3,
+    "explicacao": "p → q ≡ ¬p ∨ q. Negando e aplicando De Morgan: ¬(¬p ∨ q) ≡ p ∧ ¬q."
+  }
+]

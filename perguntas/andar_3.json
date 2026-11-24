@@ -93,5 +93,29 @@
     ],
     "correta": 0,
     "explicacao": "Todo aluno não faltou. Equivale a ¬∃x (A(x) ∧ F(x)): não existe aluno que faltou."
+  },
+  {
+    "id": 301,
+    "enunciado": "Qual é a coluna de resultado da tabela-verdade de ¬(p ∨ q) → q? (linhas: VV, VF, FV, FF)",
+    "opcoes": [
+      "V F V V",
+      "F V V V",
+      "V V V F",
+      "V V F V"
+    ],
+    "correta": 2,
+    "explicacao": "A condicional só é falsa quando o antecedente é V e o consequente é F. ¬(p ∨ q) só é V na linha FF, e nela q é F: resultado F. Nas outras linhas é V."
+  },
+  {
+    "id": 302,
+    "enunciado": "Qual fórmula é equivalente a p → q (a contrapositiva)?",
+    "opcoes": [
+      "q → p",
+      "¬p → ¬q",
+      "p ∧ ¬q",
+      "¬q → ¬p"
+    ],
+    "correta": 3,
+    "explicacao": "A contrapositiva de p → q é ¬q → ¬p. Já q → p (recíproca) e ¬p → ¬q (inversa) não são equivalentes."
   }
 ]

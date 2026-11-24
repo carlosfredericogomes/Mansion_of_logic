@@ -47,7 +47,7 @@ O jogador controla o **Exterminador**, que precisa escapar da mansão. Em cada a
 2. Na **exploração**, move o Exterminador com **W, A, S e D** (ou com as setas) até o encontro com o chefe do andar.
 3. No **duelo**, aparece uma pergunta de lógica com 3 ou 4 alternativas:
    - **Acertou:** o Exterminador golpeia e o chefe perde 1 coração.
-   - **Errou:** o chefe golpeia e o Exterminador perde 1 coração. A tela mostra a explicação da resposta certa.
+   - **Errou:** o chefe golpeia e o Exterminador perde 1 coração. A tela mostra a explicação da resposta certa (ela também aparece quando o jogador acerta).
 4. Quando o chefe fica com 0 corações, o jogador **vence o andar** e ganha de 1 a 3 **estrelas**, conforme os corações que sobraram.
 5. Se ainda dá para ganhar mais estrelas, o jogo oferece uma **nova chance** contra o mesmo chefe, sem reiniciar a partida. O andar fica com a **melhor** pontuação.
 6. Se o Exterminador perde **todos os corações**, aparece a tela de **GAME OVER** e o jogo volta ao **menu**, para recomeçar do **andar 1**.
@@ -55,7 +55,8 @@ O jogador controla o **Exterminador**, que precisa escapar da mansão. Em cada a
 
 ### Regras de vida
 
-- O Exterminador tem **3 corações**, e eles **voltam a 3 ao passar para o próximo andar**.
+- O Exterminador tem **3 corações** em cada duelo, e eles **voltam a 3 ao passar para o próximo andar**.
+- **Baús (andares 3 e 4):** no corredor que leva ao chefe há um baú. Chegando perto aparece o botão **ABRIR** (Enter ou clique) e uma pergunta do banco da exploração (com a mesma confirmação do duelo) (fáceis e médias no baú do andar 3, médias e difíceis no do andar 4). Acertar dá **+1 coração**, que vale nos duelos seguintes: o duelo do andar 3 pode começar com 4 corações e o do andar 4 com até **5**. Errar não custa nada, o baú só fica vazio. Um game over zera os corações extras.
 - Cada coração é uma vida inteira (não há meio coração).
 - Cada acerto ou erro vale exatamente 1 coração.
 - Estrelas de cada andar: **3 corações = 3 estrelas, 2 corações = 2 estrelas, 1 coração = 1 estrela**. Uma nova chance no mesmo andar também começa com os 3 corações cheios.
@@ -116,12 +117,15 @@ O jogo abre em **tela cheia** (desenha em 1280×720 a 60 FPS e o pygame escala p
 | Exploração | `S` ou `↓` | Move o Exterminador para trás |
 | Exploração | `A` ou `←` | Move o Exterminador para a esquerda |
 | Exploração | `D` ou `→` | Move o Exterminador para a direita |
-| Exploração | `Enter` ou `Espaço` | Pula a exploração e vai direto ao chefe |
+| Exploração | `Enter` ou `Espaço` | Pula a exploração e vai direto ao chefe (perto do baú, `Enter` abre o baú) |
+| Baú | `↑` `↓` ou `1` a `4`, `Enter` ou clique | Escolhe a alternativa; depois **Confirmar** ou **Cancelar** (como no duelo) |
 | Duelo | Setas `↑` `↓` ou teclas `1` a `4` | Escolhe a alternativa |
-| Duelo | `Enter` | Confirma a resposta e, depois do golpe, avança |
-| Duelo | Mouse | Passar por cima destaca a alternativa e clicar confirma |
+| Duelo | `Enter` | Abre "Confirmar a resposta?"; `Enter` em **Confirmar** valida e, depois do golpe, avança |
+| Duelo | `←` `→` e `Backspace` | Na confirmação, trocam entre Confirmar e Cancelar; `Backspace` volta às alternativas |
+| Duelo | Mouse | Passar por cima destaca a alternativa, clicar pergunta e os botões Confirmar e Cancelar decidem |
 | Andar concluído | `↑` `↓` ou `1` e `2`, e `Enter` | Escolhe entre tentar de novo e continuar |
 | Game over e vitória | `Enter` (ou clique) | Volta ao menu |
+| Exploração, duelo e andar concluído | `Esc` | Pausa (continuar, ligar e desligar o som, voltar ao menu ou sair) |
 | Qualquer tela | `F11` | Alterna tela cheia |
 
 ---
@@ -132,10 +136,10 @@ O jogo abre em **tela cheia** (desenha em 1280×720 a 60 FPS e o pygame escala p
 |---|---|---|---|
 | 1 | Drácula | 3 | 6 |
 | 2 | Frankenstein | 4 | 7 |
-| 3 | Musashi (fantasma) | 5 | 8 |
-| 4 | Lobisomem (chefe final) | 7 | 10 |
+| 3 | Musashi (fantasma) | 5 | 10 |
+| 4 | Lobisomem (chefe final) | 7 | 13 |
 
-Total de **31 perguntas**. Cada banco cobre o pior caso de um duelo (vida do chefe + 3 − 1 perguntas) com 1 pergunta de sobra, e há um teste automático que garante isso.
+Total de **36 perguntas** nos bancos dos chefes, mais as perguntas dos baús (`perguntas/exploracao.json`). Cada banco cobre o pior caso de um duelo (vida do chefe + corações do jogador − 1 perguntas), inclusive com os corações extras dos baús, e há testes automáticos que garantem isso.
 
 ---
 
@@ -153,7 +157,8 @@ Mansion_of_logic/
 │   ├── andar_1.json        # banco de perguntas de cada andar
 │   ├── andar_2.json
 │   ├── andar_3.json
-│   └── andar_4.json
+│   ├── andar_4.json
+│   └── exploracao.json     # perguntas dos baús 
 ├── src/
 │   ├── __init__.py
 │   ├── chefes.py           # dados dos 4 chefes e vidas do jogador (sem pygame)

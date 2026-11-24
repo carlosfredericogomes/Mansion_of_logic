@@ -6,9 +6,11 @@ from config.config import (
 )
 
 from src.progressao import ANDAR_CONCLUIDO, VITORIA, Partida
-from src.recursos import JOGADOR_SPRITE, carregar_imagem, redimensionar_por_altura
+from src.recursos import JOGADOR_SPRITE, alternar_mudo, carregar_imagem, redimensionar_por_altura
 from src.tela_conclusao import TelaConclusao
-from src.telas import TelaAndarConcluido, TelaDuelo, TelaExploracao, TelaGameOver
+from src.telas import (
+    TelaAndarConcluido, TelaBau, TelaDuelo, TelaExploracao, TelaGameOver, TelaPausa, desenhar_dica,
+)
 
 # Telas do jogo.
 MENU = "MENU"
@@ -17,6 +19,10 @@ JOGO = "JOGO"
 ANDAR_FEITO = "ANDAR_FEITO"
 GAME_OVER = "GAME_OVER"
 CONCLUSAO = "CONCLUSAO"
+
+DICA_MENU = ("Enter ou clique: começar   ·   W A S D / setas: andar   ·   1 a 4 e Enter: responder"
+             "   ·   ESC: pausa   ·   F11: tela cheia")
+JOGANDO = (EXPLORACAO, JOGO, ANDAR_FEITO)   # estados em que o ESC abre a pausa
 
 BOTAO = pygame.Rect(0, 0, 260, 70)
 BOTAO.center = (1090, 640)
@@ -31,6 +37,7 @@ def desenhar_menu(tela, fundo, jogador, fonte, mouse_pos):
     pygame.draw.rect(tela, COR_BORDA, BOTAO, width=4, border_radius=10)
     texto = fonte.render("COMEÇAR", True, WHITE)
     tela.blit(texto, texto.get_rect(center=BOTAO.center))
+    desenhar_dica(tela, DICA_MENU, (640, 690), tamanho=18)
 
 
 def menu_inicial():
@@ -47,14 +54,31 @@ def menu_inicial():
     estado = MENU
     partida = None      # andar atual, estrelas e pontuação (progressao.py)
     atual = None        # a tela que está aparecendo (exploração, duelo, estrelas, game over ou vitória)
+    pausa = None        # menu de pausa (ESC), quando aberto
+    bau = None          # pergunta do baú da exploração, quando aberta
     dt = 0.0
     rodando = True
+    
     while rodando:
         for evento in pygame.event.get():
             if evento.type == pygame.QUIT:
                 rodando = False
             elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_F11:
                 pygame.display.toggle_fullscreen()
+            elif pausa is not None:
+                acao = pausa.tratar_evento(evento)
+                if acao == "continuar":
+                    pausa = None
+                elif acao == "som":
+                    alternar_mudo()
+                elif acao == "menu":                   # abandona a partida e volta ao menu
+                    pausa, bau, estado, atual, partida = None, None, MENU, None, None
+                elif acao == "sair":
+                    rodando = False
+            elif evento.type == pygame.KEYDOWN and evento.key == pygame.K_ESCAPE and estado in JOGANDO:
+                pausa = TelaPausa()
+            elif bau is not None:
+                bau.tratar_evento(evento)
             elif estado == MENU:
                 clicou = (evento.type == pygame.MOUSEBUTTONDOWN and evento.button == 1
                           and BOTAO.collidepoint(evento.pos))
@@ -66,8 +90,18 @@ def menu_inicial():
             else:
                 atual.tratar_evento(evento)
 
-        if estado != MENU:
+        if estado != MENU and pausa is None and bau is None:   # na pausa e na pergunta do baú o jogo fica congelado
             atual.atualizar(dt)
+        elif bau is not None and pausa is None:   # só a pergunta do baú anda (a exploração fica parada atrás)
+            bau.atualizar(dt)
+
+        if estado == EXPLORACAO and bau is None and atual.pedir_bau:   # o jogador clicou em ABRIR no baú
+            atual.pedir_bau = False
+            bau = TelaBau(partida.sortear_pergunta_bau())
+        elif bau is not None and bau.concluida:                        # fechou o resultado do baú
+            partida.abrir_bau(bau.acertou)
+            atual.bau_resolvido(bau.acertou)
+            bau = None
 
         if estado == EXPLORACAO and atual.concluida:
             # Encontro com o chefe: o Duelo começa em S1 (ENCONTRO_CHEFE) com os 3 corações cheios.
@@ -89,7 +123,7 @@ def menu_inicial():
                 atual = TelaConclusao(partida.pontuacao_final)
                 estado = CONCLUSAO
             else:                                              # sobe para o próximo andar
-                atual = TelaExploracao(partida.andar_atual)
+                atual = TelaExploracao(partida.andar_atual, partida.andar_tem_bau)
                 estado = EXPLORACAO
         elif estado in (GAME_OVER, CONCLUSAO) and atual.concluida:
             estado = MENU
@@ -100,6 +134,10 @@ def menu_inicial():
             desenhar_menu(tela, fundo, jogador, fonte, pygame.mouse.get_pos())
         else:
             atual.desenhar(tela)
+        if bau is not None:
+            bau.desenhar(tela)
+        if pausa is not None:
+            pausa.desenhar(tela)
 
         pygame.display.flip()
         dt = min(relogio.tick(FPS) / 1000, 0.1)  # segundos desde o quadro anterior (limitado)

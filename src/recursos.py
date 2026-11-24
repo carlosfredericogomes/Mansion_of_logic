@@ -29,6 +29,7 @@ FUNDOS_EXPLORACAO = {
 _cache_imagens = {}
 _cache_fontes = {}
 _cache_sons = {}
+_mudo = False   # o menu de pausa (ESC) liga e desliga o som
 _mixer_ok = None  # None = ainda não tentou iniciar o áudio
 
 
@@ -84,9 +85,20 @@ def _iniciar_audio():
     return _mixer_ok
 
 
+def som_mudo():
+    return _mudo
+
+
+def alternar_mudo():
+    """Liga ou desliga todos os sons do jogo. Devolve True se ficou mudo."""
+    global _mudo
+    _mudo = not _mudo
+    return _mudo
+
+
 def tocar_som(nome):
     """Toca um som de assets/sons. Se faltar o arquivo ou o áudio, avisa no terminal e segue sem som."""
-    if not _iniciar_audio():
+    if _mudo or not _iniciar_audio():
         return
     if nome not in _cache_sons:
         caminho = SONS_DIR / nome
