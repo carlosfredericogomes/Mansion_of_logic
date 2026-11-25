@@ -154,10 +154,11 @@ def test_nao_troca_de_cena_antes_de_chegar_ao_fim(janela):
     assert tela.cena == 0 and tela.fade_saida is None
 
 
-def test_enter_pula_a_exploracao(janela):
+def test_enter_e_espaco_nao_pulam_a_exploracao(janela):
     tela = TelaExploracao()
     tela.tratar_evento(tecla(pygame.K_RETURN))
-    assert tela.concluida
+    tela.tratar_evento(tecla(pygame.K_SPACE))
+    assert not tela.concluida
 
 
 def test_exploracao_desenha_sem_erro_andando_e_parado(janela):
@@ -672,8 +673,8 @@ def test_enter_perto_do_bau_abre_e_nao_pula_a_exploracao(janela):
     tela.tratar_evento(tecla(pygame.K_RETURN))
     assert tela.pedir_bau and not tela.concluida
     tela.pedir_bau = False
-    tela.tratar_evento(tecla(pygame.K_SPACE))          # Espaço continua pulando
-    assert tela.concluida
+    tela.tratar_evento(tecla(pygame.K_SPACE))          # Espaço não faz nada
+    assert not tela.pedir_bau and not tela.concluida
 
 
 def test_clicar_em_abrir_pede_o_bau_e_clicar_fora_nao(janela):
@@ -685,10 +686,10 @@ def test_clicar_em_abrir_pede_o_bau_e_clicar_fora_nao(janela):
     assert tela.pedir_bau
 
 
-def test_enter_longe_do_bau_ainda_pula_a_exploracao(janela):
+def test_enter_longe_do_bau_nao_faz_nada(janela):
     tela = TelaExploracao(3, com_bau=True)
     tela.tratar_evento(tecla(pygame.K_RETURN))
-    assert tela.concluida and not tela.pedir_bau
+    assert not tela.concluida and not tela.pedir_bau
 
 
 def test_bau_resolvido_deixa_o_bau_aberto_e_mostra_a_mensagem(janela):

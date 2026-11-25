@@ -97,7 +97,7 @@ PAINEL_BAU = pygame.Rect(340, 70, 600, 540)
 BAU_ESPERA = 0.3              # na tela do resultado, só dá para fechar depois deste tempo
 
 # --- Dicas na tela e pausa ---
-DICA_EXPLORACAO = "W A S D ou setas: andar   ·   Enter: ir direto ao chefe   ·   ESC: pausa"
+DICA_EXPLORACAO = "W A S D ou setas: andar   ·   ESC: pausa"
 DICA_DUELO = "↑ ↓ ou 1 a 4: escolher   ·   Enter ou clique: responder   ·   ESC: pausa"
 DICA_CONFIRMAR = "← →: escolher   ·   Enter: aplicar   ·   Backspace: voltar às alternativas"
 ROTULOS_CONFIRMAR = ("Confirmar", "Cancelar")
@@ -297,7 +297,7 @@ class TelaExploracao:
 
     W/↑ avança (sobe na tela e ele encolhe pela perspectiva), S/↓ volta, A/D e ←/→ andam de lado,
     sem sair do caminho. Chegar ao fim de uma cena leva à próxima; no topo da escada a tela
-    fica `concluida` e o main começa o duelo (evento ENCONTRO_CHEFE). Enter ou Espaço pulam."""
+    fica `concluida` e o main começa o duelo (evento ENCONTRO_CHEFE). Não dá para pular: o jogador percorre todas as cenas."""
 
     def __init__(self, andar=1, com_bau=False):
         self.andar = andar
@@ -377,9 +377,7 @@ class TelaExploracao:
                 self.pedir_bau = True
         elif evento.type == pygame.KEYDOWN:
             if evento.key in ENTER and self.perto_do_bau:
-                self.pedir_bau = True      # perto do baú, Enter abre (e não pula a exploração)
-            elif evento.key in ENTER or evento.key == pygame.K_SPACE:
-                self.concluida = True  # pula a exploração
+                self.pedir_bau = True      # perto do baú, Enter abre. Não há mais como pular a exploração.
 
     def atualizar(self, dt, teclas=None):
         """`teclas` é o estado do teclado (pygame.key.get_pressed()); os testes passam o seu."""

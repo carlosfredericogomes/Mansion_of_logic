@@ -117,7 +117,7 @@ O jogo abre em **tela cheia** (desenha em 1280×720 a 60 FPS e o pygame escala p
 | Exploração | `S` ou `↓` | Move o Exterminador para trás |
 | Exploração | `A` ou `←` | Move o Exterminador para a esquerda |
 | Exploração | `D` ou `→` | Move o Exterminador para a direita |
-| Exploração | `Enter` ou `Espaço` | Pula a exploração e vai direto ao chefe (perto do baú, `Enter` abre o baú) |
+| Exploração | `Enter` ou clique em **ABRIR** | Perto do baú (andares 3 e 4), abre o baú |
 | Baú | `↑` `↓` ou `1` a `4`, `Enter` ou clique | Escolhe a alternativa; depois **Confirmar** ou **Cancelar** (como no duelo) |
 | Duelo | Setas `↑` `↓` ou teclas `1` a `4` | Escolhe a alternativa |
 | Duelo | `Enter` | Abre "Confirmar a resposta?"; `Enter` em **Confirmar** valida e, depois do golpe, avança |
