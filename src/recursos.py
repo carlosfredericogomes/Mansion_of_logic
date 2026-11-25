@@ -2,7 +2,7 @@
 import pygame
 
 from config.config import (
-    COR_BORDA, COR_PLACEHOLDER, FONTE_NEGRITO, FONTE_PADRAO, FONTES_DIR, IMAGENS_DIR, SONS_DIR,
+    COR_BORDA, COR_PLACEHOLDER, FONTE_NEGRITO, FONTE_PADRAO, FONTE_TERROR, FONTES_DIR, IMAGENS_DIR, SONS_DIR,
 )
 
 # Sons do jogo (arquivos em assets/sons).
@@ -61,6 +61,14 @@ def carregar_imagem(nome, tamanho=None):
 
     _cache_imagens[chave] = imagem
     return imagem
+
+
+def carregar_fonte_terror(tamanho):
+    """Fonte de terror (Creepster) do título do menu, em cache. Não tem acentos nem símbolos lógicos."""
+    chave = ("terror", tamanho)
+    if chave not in _cache_fontes:
+        _cache_fontes[chave] = pygame.font.Font(FONTES_DIR / FONTE_TERROR, tamanho)
+    return _cache_fontes[chave]
 
 
 def carregar_fonte(tamanho, negrito=False):

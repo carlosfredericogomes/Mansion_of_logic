@@ -149,7 +149,7 @@ Total de **36 perguntas** nos bancos dos chefes, mais as perguntas dos baús (`p
 Mansion_of_logic/
 ├── assets/
 │   ├── imagens/            # fundos, chefes, Exterminador (frente, costas e lado)
-│   ├── fontes/             # DejaVu Sans (tem os símbolos lógicos)
+│   ├── fontes/             # DejaVu Sans (símbolos lógicos) e Creepster (título do menu)
 │   └── sons/               # acerto, erro, vitória, game over (mp3) e passos
 ├── config/
 │   └── config.py           # constantes: 1280x720, 60 FPS, caminhos, cores
@@ -228,6 +228,7 @@ Os testes cobrem a máquina de estados, o carregamento e a validação das pergu
 |---|---|---|
 | pygame | https://www.pygame.org | LGPL |
 | Fonte DejaVu Sans | https://dejavu-fonts.github.io | Licença livre da DejaVu (o texto está em `assets/fontes/`) |
+| Fonte Creepster (título do menu) | https://fonts.google.com/specimen/Creepster (Font Diner, Inc) | SIL Open Font License 1.1 (o texto está em `assets/fontes/LICENSE-Creepster.txt`) |
 | Efeitos sonoros (`assets/sons/`, exceto o game over) | Gerados por código pela própria equipe (ondas simples, sem material de terceiros) | Sem restrição |
 | Lista de perguntas | Lista de exercícios da disciplina Lógica para Computação | Material da disciplina |
 

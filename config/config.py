@@ -13,6 +13,7 @@ FONTES_DIR = BASE_DIR / "assets" / "fontes"
 SONS_DIR = BASE_DIR / "assets" / "sons"
 FONTE_PADRAO = "DejaVuSans.ttf"        # tem ∧ ∨ ¬ → ↔ (licença em assets/fontes/LICENSE-DejaVu.txt)
 FONTE_NEGRITO = "DejaVuSans-Bold.ttf"
+FONTE_TERROR = "Creepster-Regular.ttf"   # só para o título do menu (licença OFL em assets/fontes/LICENSE-Creepster.txt)
 
 
 BLACK = (0, 0, 0)
@@ -32,6 +33,7 @@ COR_ERRO = (205, 55, 55)
 COR_CORACAO = (225, 50, 75)
 COR_PLACEHOLDER = (120, 80, 160)
 COR_DANO = (150, 0, 0)         # somada ao personagem que leva dano (piscada vermelha)
+COR_TITULO = (200, 18, 28)       # letras vermelhas do título do menu
 COR_GAME_OVER = (215, 25, 35)   # letras da tela de Game Over
 COR_OURO = (255, 214, 102)      # estrelas e destaques da vitória
 # ------------------------------------------------------------------------------

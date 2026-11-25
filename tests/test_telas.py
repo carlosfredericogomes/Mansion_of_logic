@@ -768,3 +768,19 @@ def test_botoes_do_bau_ficam_onde_sao_desenhados(janela):
     for i, cor_esperada in ((0, telas.COR_SELECIONADA), (1, telas.COR_PAINEL)):
         rect = tela._botoes_confirmacao()[i]
         assert tuple(alvo.get_at((rect.x + 12, rect.y + 6)))[:3] == cor_esperada
+
+
+# --- Título do menu ---
+
+def test_titulo_do_menu_usa_fonte_de_terror_e_letras_vermelhas(janela):
+    import main
+    from config.config import COR_TITULO, FONTE_TERROR, FONTES_DIR
+    assert (FONTES_DIR / FONTE_TERROR).exists() and main.NOME_DO_JOGO == "Mansion Of Logic"
+    titulo = main.montar_titulo()
+    assert titulo.get_width() > 400
+    vermelhos = sum(1 for x in range(0, titulo.get_width(), 3) for y in range(0, titulo.get_height(), 3)
+                    if tuple(titulo.get_at((x, y)))[:3] == COR_TITULO)
+    assert vermelhos > 100                               # as letras estão pintadas na cor do título
+    alvo = pygame.display.get_surface()
+    main.desenhar_menu(alvo, alvo.copy(), pygame.Surface((10, 10)), pygame.font.Font(None, 30), (0, 0), titulo)
+    main.desenhar_menu(alvo, alvo.copy(), pygame.Surface((10, 10)), pygame.font.Font(None, 30), (0, 0))   # sem título também funciona

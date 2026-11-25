@@ -2,11 +2,13 @@ import sys
 import pygame
 
 from config.config import (
-    ALTURA_JOGADOR_MEDIA, COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
+    ALTURA_JOGADOR_MEDIA, COR_BORDA, COR_BOTAO, COR_BOTAO_HOVER, COR_TITULO, FPS, RESOLUTION, WHITE, WINDOW_TITLE,
 )
 
 from src.progressao import ANDAR_CONCLUIDO, VITORIA, Partida
-from src.recursos import JOGADOR_SPRITE, alternar_mudo, carregar_imagem, redimensionar_por_altura
+from src.recursos import (
+    JOGADOR_SPRITE, alternar_mudo, carregar_fonte_terror, carregar_imagem, redimensionar_por_altura,
+)
 from src.tela_conclusao import TelaConclusao
 from src.telas import (
     TelaAndarConcluido, TelaBau, TelaDuelo, TelaExploracao, TelaGameOver, TelaPausa, desenhar_dica,
@@ -24,12 +26,42 @@ DICA_MENU = ("Enter ou clique: começar   ·   W A S D / setas: andar   ·   1 a
              "   ·   ESC: pausa   ·   F11: tela cheia")
 JOGANDO = (EXPLORACAO, JOGO, ANDAR_FEITO)   # estados em que o ESC abre a pausa
 
+NOME_DO_JOGO = "Mansion Of Logic"
+TITULO_TAMANHO = 120
+TITULO_CENTRO_Y = 78
+
 BOTAO = pygame.Rect(0, 0, 260, 70)
 BOTAO.center = (1090, 640)
 
 
-def desenhar_menu(tela, fundo, jogador, fonte, mouse_pos):
+def montar_titulo():
+    """Nome do jogo em fonte de terror, letras vermelhas com contorno escuro e um brilho sangrento atrás.
+    Montado uma vez (as letras não mudam), para o menu só copiar a imagem a cada quadro."""
+    fonte = carregar_fonte_terror(TITULO_TAMANHO)
+    letras = fonte.render(NOME_DO_JOGO, True, COR_TITULO)
+    contorno = fonte.render(NOME_DO_JOGO, True, (22, 4, 8))
+    brilho = fonte.render(NOME_DO_JOGO, True, (150, 0, 10))
+    margem = 24
+    largura, altura = letras.get_width() + 2 * margem, letras.get_height() + 2 * margem
+    imagem = pygame.Surface((largura, altura), pygame.SRCALPHA)
+    halo = pygame.Surface((largura, altura), pygame.SRCALPHA)
+    halo.blit(brilho, (margem, margem))
+    pequeno = pygame.transform.smoothscale(halo, (largura // 6, altura // 6))
+    halo = pygame.transform.smoothscale(pequeno, (largura, altura))      # desfoca, para virar um brilho
+    for _ in range(3):
+        imagem.blit(halo, (0, 0))
+    for dx in range(-4, 5):                                              # contorno escuro de 4 px
+        for dy in range(-4, 5):
+            if dx * dx + dy * dy <= 16:
+                imagem.blit(contorno, (margem + dx, margem + dy + 4))
+    imagem.blit(letras, (margem, margem))
+    return imagem
+
+
+def desenhar_menu(tela, fundo, jogador, fonte, mouse_pos, titulo=None):
     tela.blit(fundo, (0, 0))
+    if titulo is not None:
+        tela.blit(titulo, titulo.get_rect(center=(640, TITULO_CENTRO_Y)))
     tela.blit(jogador, jogador.get_rect(midbottom=(430, 700)))
 
     cor = COR_BOTAO_HOVER if BOTAO.collidepoint(mouse_pos) else COR_BOTAO
@@ -47,6 +79,7 @@ def menu_inicial():
     pygame.display.set_caption(WINDOW_TITLE)
     relogio = pygame.time.Clock()
     fonte = pygame.font.Font(None, 48)
+    titulo = montar_titulo()
 
     fundo = carregar_imagem("fundo_entrada_mansao.png", RESOLUTION)
     jogador = redimensionar_por_altura(carregar_imagem(JOGADOR_SPRITE), ALTURA_JOGADOR_MEDIA)
@@ -131,7 +164,7 @@ def menu_inicial():
             partida = None
 
         if estado == MENU:
-            desenhar_menu(tela, fundo, jogador, fonte, pygame.mouse.get_pos())
+            desenhar_menu(tela, fundo, jogador, fonte, pygame.mouse.get_pos(), titulo)
         else:
             atual.desenhar(tela)
         if bau is not None:
